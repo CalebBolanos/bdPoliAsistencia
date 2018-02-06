@@ -1634,3 +1634,16 @@ set msj = 'ok';
 end;**
 delimiter ;
 call spEditaNoti(1,1,'Nuevo','OTRO','ALGO.COMX2','SINIMG');
+
+drop procedure if exists spHorarioProfesor;
+delimiter :v
+create procedure spHorarioProfesor(in bol nvarchar(20))
+begin
+	declare existe int;
+	set existe = (select count(*) from vwtrabajadores where numTrabajador = bol);
+	if existe = 1 then
+		select * from vwhorarioalumnos where numTrabajador = bol;
+	end if;
+end; :v
+
+delimiter ;
