@@ -1647,3 +1647,38 @@ begin
 end; :v
 
 delimiter ;
+
+drop procedure if exists spBorraHorario;
+
+delimiter :v
+
+create procedure spBorraHorario(in idUnid int, in con nvarchar(20))
+begin
+	declare existe int;
+    declare msj nvarchar(200);
+    set existe = (select count(*) from unidadesaprendizaje where idUnidad = idUnid);
+    if existe > 0 then
+		update unidadesaprendizaje set idProfesor = -1, idGrupo = -1 where idUnidad = idUnid;
+        delete from horariosunidad where idUnidad = idUnid;
+        set msj = 'Buenas noches';
+	else
+		set msj = 'Buenos días';
+    end if;
+    select msj;
+end; :v
+
+delimiter ;
+
+drop procedure if exists sptraerDatosUnidad;
+delimiter :v
+create procedure spTraerDatosUnidad(in idUnid int)
+begin
+	declare existe int;
+    set existe = (select count(*) from unidadesaprendizaje where idUnidad = idUnid);
+	if existe > 0 then
+		select * from vwunidadeshorarios where idUnidad = idUnid;
+	end if;
+end; :v
+delimiter ;
+
+
