@@ -71,7 +71,7 @@ update personas set idTipo = 4 where idPer = 10;
 drop view if exists vwUnidadesHorarios;
 create view vwUnidadesHorarios as
 select ua.idUnidad, hu.idHorarioUnidad, m.materia, m.semestre, pro.numTrabajador, concat(per.nombre, ' ', per.paterno, ' ', per.materno) as Nombre,
-  ua.idProfesor, gru.grupo, ua.idGrupo, ua.cupo, hu.idHorarioI,hu.idHorarioF,hu.idDia from horariosunidad hu
+  ua.idProfesor, gru.grupo, ua.idGrupo, ua.cupo, hu.idHorarioI,hu.idHorarioF,hu.idDia, ua.idMateria from horariosunidad hu
 	inner join unidadesaprendizaje ua on ua.idUnidad = hu.idUnidad
     inner join materias m on m.idMateria = ua.idMateria
     inner join profesores pro on pro.idPer = ua.idProfesor
@@ -474,7 +474,7 @@ declare msj nvarchar(200);
 set idP = 0;
 set existe = (select count(*) from materias where materia = nomAnt);
 if existe = 1 then
-	set existe = (select count(*) from materia where materia = nomNue);
+	set existe = (select count(*) from materias where materia = nomNue);
 	if (existe = 0 or nomAnt = nomNue) then
 		set idP = (select idMateria from materias where materia = nomAnt);
 		update materias set materia = nomNue, idArea = idAre, semestre = semes where idMateria = idP;
@@ -488,6 +488,7 @@ end if;
 select msj, idP;
 end; **
 delimiter ;
+call spEditaMateria('PI', 'PI2', 2, 1);
 call spEditaGrupo('1234', '1234', 2, 1, 1);
 drop procedure if exists spContrasenas;
 delimiter **
@@ -1660,9 +1661,9 @@ begin
     if existe > 0 then
 		update unidadesaprendizaje set idProfesor = -1, idGrupo = -1 where idUnidad = idUnid;
         delete from horariosunidad where idUnidad = idUnid;
-        set msj = 'Buenas noches';
+        set msj = 'OK';
 	else
-		set msj = 'Buenos días';
+		set msj = 'NO';
     end if;
     select msj;
 end; :v
@@ -1679,6 +1680,17 @@ begin
 		select * from vwunidadeshorarios where idUnidad = idUnid;
 	end if;
 end; :v
+delimiter ;
+
+drop procedure if exists spPersonaConHuella;
+delimiter :v
+create procedure spPersonaConHuella(in idPer int)
+begin
+declare ret int;
+set ret = (select count(*) from vwhuellaspersonas where idPersona = idPer);
+select ret;
+end; :v
+
 delimiter ;
 
 
