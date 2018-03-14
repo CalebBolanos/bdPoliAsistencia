@@ -1007,23 +1007,23 @@ insert into horasalida values(1,(DATE_ADD(NOW(),INTERVAL 30 MINUTE)));
 insert into horaentrada values(2,time(now()));
 insert into horasalida values(2,time(now()));
 
-insert into asistenciaalumnos values(3,1,1,7,8,year (now()),1);
+insert into asistenciaalumnos values(3,1,1,7,month (now()),year (now()),3);
 insert into horaentrada values(3,'07:12:00');
 insert into horasalida values(3,'12:12:12');
-insert into asistenciaalumnos values(4,1,1,8,8,year (now()),2);
+insert into asistenciaalumnos values(4,1,1,8,month (now()),year (now()),4);
 insert into horaentrada values(4,'07:12:00');
 insert into horasalida values(4,'12:12:12');
-insert into asistenciaalumnos values(5,1,1,9,8,year (now()),3);
+insert into asistenciaalumnos values(5,1,1,9,month (now()),year (now()),5);
 insert into horaentrada values(5,'07:12:00');
 insert into horasalida values(5,'12:12:12');
-insert into asistenciaalumnos values(6,1,1,8,8,year (now()),4);
+insert into asistenciaalumnos values(6,1,1,12,month (now()),year (now()),1);
 insert into horaentrada values(6,'07:12:00');
 insert into horasalida values(6,'12:12:12');
 
-insert into asistenciaalumnos values(7,1,1,4,9,year (now()),1);
+insert into asistenciaalumnos values(7,1,1,13,month (now()),year (now()),2);
 insert into horaentrada values(7,'07:12:00');
 insert into horasalida values(7,'12:12:12');
-insert into asistenciaalumnos values(8,1,1,5,9,year (now()),2);
+insert into asistenciaalumnos values(8,1,1,14,2,year (now()),3);
 insert into horaentrada values(8,'06:49:00');
 insert into horasalida values(8,'12:58:12');
 insert into asistenciaalumnos values(9,1,1,6,9,year (now()),3);
@@ -1068,7 +1068,9 @@ insert into horasalida values(21,'12:30:12');
 insert into asistenciaalumnos values(22,1,1,10,11,year (now()),5);
 insert into horaentrada values(22,'13:59:00');
 insert into horasalida values(22,'17:30:12');
-
+insert into asistenciaalumnos values(23,1,2,1,3,year (now()),4);
+insert into asistenciaalumnos values(24,1,2,2,3,year (now()),5);
+ 
 call spConsultaA(1,12);
 select * from asistenciaalumnos;
 select * from horaentradaMA;
