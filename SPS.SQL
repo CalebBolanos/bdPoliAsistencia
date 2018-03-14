@@ -1428,6 +1428,26 @@ delimiter ;
 
 call spDatosgrupoEspecifico('sin grupo');
 
+drop function if exists fFaltas;
+delimiter **
+create function fFaltas(idAl int,mes int)returns int
+begin 
+declare f int;
+
+set f = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 2  and idAlumno = idAl group by idAlumno),0);
+
+return f;
+end **
+delimiter ;
+
+drop view vwFaltasTotalTurno;
+create view vwFaltasTotalTurno as 
+select (select fFaltas(aa.idAlumno,3))'Faltados',aa.idMes,ag.boleta,ag.Grupo from asistenciaalumnos Aa 
+    inner join vwalumnoscongrupo ag on ag.idPersona = Aa.idAlumno
+    
+group by ag.boleta;
+select * from vwFaltasTotalTurno;
+
 drop view if exists vwAsistenciaGXM;
 drop procedure if exists spAsistenciaGrupo;
 delimiter %%
