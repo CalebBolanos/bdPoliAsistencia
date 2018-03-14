@@ -1430,23 +1430,15 @@ call spDatosgrupoEspecifico('sin grupo');
 
 drop function if exists fFaltas;
 delimiter **
-create function fFaltas(idAl int,mes int)returns int
+create function fFaltas(idAl int,m int)returns int
 begin 
 declare f int;
 
-set f = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 2  and idAlumno = idAl group by idAlumno),0);
+set f = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 2  and idAlumno = idAl and mes = m group by idAlumno),0);
 
 return f;
 end **
 delimiter ;
-
-drop view vwFaltasTotalTurno;
-create view vwFaltasTotalTurno as 
-select (select fFaltas(aa.idAlumno,3))'Faltados',aa.idMes,ag.boleta,ag.Grupo from asistenciaalumnos Aa 
-    inner join vwalumnoscongrupo ag on ag.idPersona = Aa.idAlumno
-    
-group by ag.boleta;
-select * from vwFaltasTotalTurno;
 
 drop view if exists vwAsistenciaGXM;
 drop procedure if exists spAsistenciaGrupo;
@@ -1526,7 +1518,7 @@ delimiter %%
 create procedure spAsistenciaTurnoMes(in m int,in t int)
 begin
 
-select (select count(a.asistecia) where a.asistecia = 'si')'Asistidos',(select count(a.asistecia) where a.asistecia = 'no')'faltas',aa.idMes,g.idTurno,concat(ag.paterno,' ',ag.materno,' ',ag.nombre) nombre,ag.boleta,ag.Grupo from asistenciaalumnos Aa 
+select (select count(a.asistecia) where a.asistecia = 'si')'Asistidos',(select fFaltas(aa.idAlumno,m))'faltas',aa.idMes,g.idTurno,concat(ag.paterno,' ',ag.materno,' ',ag.nombre) nombre,ag.boleta,ag.Grupo from asistenciaalumnos Aa 
 	inner join asistencia a on a.idAsistencia = Aa.idAsistencia
     inner join vwalumnoscongrupo ag on ag.idPersona = Aa.idAlumno
      inner join grupos g on g.Grupo = ag.Grupo
@@ -1535,8 +1527,7 @@ group by ag.boleta;
 
 end; %%
 delimiter ;
-call spAsistenciaturnomes(1,1);
-
+call spAsistenciaturnomes(month(now()),1);
 drop procedure if exists spHorarioAlumno;
 delimiter :v
 create procedure spHorarioAlumno(in bol nvarchar(20))
