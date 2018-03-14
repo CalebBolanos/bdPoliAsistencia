@@ -1007,23 +1007,23 @@ insert into horasalida values(1,(DATE_ADD(NOW(),INTERVAL 30 MINUTE)));
 insert into horaentrada values(2,time(now()));
 insert into horasalida values(2,time(now()));
 
-insert into asistenciaalumnos values(3,1,1,7,month (now()),year (now()),3);
+insert into asistenciaalumnos values(3,1,1,7,8,year (now()),1);
 insert into horaentrada values(3,'07:12:00');
 insert into horasalida values(3,'12:12:12');
-insert into asistenciaalumnos values(4,1,1,8,month (now()),year (now()),4);
+insert into asistenciaalumnos values(4,1,1,8,8,year (now()),2);
 insert into horaentrada values(4,'07:12:00');
 insert into horasalida values(4,'12:12:12');
-insert into asistenciaalumnos values(5,1,1,9,month (now()),year (now()),5);
+insert into asistenciaalumnos values(5,1,1,9,8,year (now()),3);
 insert into horaentrada values(5,'07:12:00');
 insert into horasalida values(5,'12:12:12');
-insert into asistenciaalumnos values(6,1,1,12,month (now()),year (now()),1);
+insert into asistenciaalumnos values(6,1,1,8,8,year (now()),4);
 insert into horaentrada values(6,'07:12:00');
 insert into horasalida values(6,'12:12:12');
 
-insert into asistenciaalumnos values(7,1,1,13,month (now()),year (now()),2);
+insert into asistenciaalumnos values(7,1,1,4,9,year (now()),1);
 insert into horaentrada values(7,'07:12:00');
 insert into horasalida values(7,'12:12:12');
-insert into asistenciaalumnos values(8,1,1,14,2,year (now()),3);
+insert into asistenciaalumnos values(8,1,1,5,9,year (now()),2);
 insert into horaentrada values(8,'06:49:00');
 insert into horasalida values(8,'12:58:12');
 insert into asistenciaalumnos values(9,1,1,6,9,year (now()),3);
@@ -1068,9 +1068,7 @@ insert into horasalida values(21,'12:30:12');
 insert into asistenciaalumnos values(22,1,1,10,11,year (now()),5);
 insert into horaentrada values(22,'13:59:00');
 insert into horasalida values(22,'17:30:12');
-insert into asistenciaalumnos values(23,1,2,1,3,year (now()),4);
-insert into asistenciaalumnos values(24,1,2,2,3,year (now()),5);
- 
+
 call spConsultaA(1,12);
 select * from asistenciaalumnos;
 select * from horaentradaMA;
@@ -1120,8 +1118,8 @@ call spUnidadHorario(3, 1,2,2);
 call spUnidadHorario(3, 1,2,3);
 call spUnidadHorario(3, 1,2,4);
 call spUnidadHorario(3, 1,2,5);
-call spGuardaDocente(2, 2, 'Mendoza', 'Medina', 'Zyanya', '1990-05-17', 'sinAsiganr@gmail.com', '666');
-call spGuardaDocente(2, 1, 'Cruz', 'Morales', 'Pedrikis', '1997-02-17', 'sinAsiganr@gmail.com', '1111');
+call spGuardaDocente(3, 2, 'Mendoza', 'Medina', 'Zyanya', '1990-05-17', 'sinAsiganr@gmail.com', '6666');
+call spGuardaDocente(3, 1, 'Cruz', 'Morales', 'Pedrikis', '1997-02-17', 'sinAsiganr@gmail.com', '1111');
 call spGuardaAlumnos(1,'Vargas','Correa','Lalin bolin','2000-12-07','obedisor@gmail.com','2016090713',1);
 call spGuardaAlumnos(1,'Osiris','Osisrisx2','Osisrisx3','2000-12-12','singasingar@gmail.com','2010090713',1);
 
@@ -1696,3 +1694,6 @@ end; :v
 delimiter ;
 
 
+create view vwQuienVino as select
+	vu.materia, vu.Nombre, vu.idDia, vu.idMateria, va.* from vwunidadeshorarios vu
+    inner join vwasistenciama va on va.idProfesor = vu.idProfesor;
