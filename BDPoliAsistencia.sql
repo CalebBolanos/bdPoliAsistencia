@@ -9,6 +9,8 @@ create table genero(
 idGenero int not null primary key,
 genero nvarchar(200) not null
 );
+
+
 create table personas(
 idPer int not null primary key,
 idTipo int not null,
@@ -17,10 +19,18 @@ nombre nvarchar(250) not null,
 paterno nvarchar(250),
 materno nvarchar(250),
 fecha date,
-correo nvarchar(250),
 constraint idTipo_FK foreign key (idTipo)references tipoPersona(idTipo),
 constraint idGenero_FK foreign key (idGenero)references genero (idGenero)
 );
+
+create table correoPersonas(
+	idCorreo int not null primary key,
+    correo nvarchar(300) not null,
+    idPer int not null,
+	foreign key(idPer) references personas(idPer)
+);
+
+
 create table huellas(
 idHuella int not null primary key,
 huella blob
@@ -248,3 +258,16 @@ idImg int not null,
 idNot int not null
 );
 ## getion; jefe de academia;
+
+create table correoValidado(
+	idPersona int,
+	validado int, ##0 no registrado, 1 registrado pero no validado, 2 registrado y validado
+    foreign key (idPersona) references personas(idPer)
+);
+
+
+create table codigoCorreoValidacion	(
+	idCorreo int not null,
+    validacion nvarchar(16),
+    foreign key(idCorreo) references correoPersonas(idCorreo)
+);

@@ -114,6 +114,11 @@ select vwUH.*, vwA.boleta from vwunidadeshorarios vwUH
     order by boleta;
 select * from vwHorarioAlumnos;
 
+
+create view vwQuienVino as select
+	vu.materia, vu.Nombre, vu.idDia, vu.idMateria, va.* from vwunidadeshorarios vu
+    inner join vwasistenciama va on va.idProfesor = vu.idProfesor;
+
 ## Functions
 drop procedure if exists fGuardaHuella;
 delimiter **
@@ -235,7 +240,7 @@ set existe = (Select count(*) from alumnos where boleta = bol);
 if (existe = 0) then 
 	set idP = (Select ifnull(max(idPer),0) +1 from personas);
     set idC = (Select ifnull(max(idContra),0) +1 from contrasenas);
-    insert into personas values(idP,2,g,nom,pat,mat,fech,mail);
+    insert into personas values(idP,2,g,nom,pat,mat,fech);
     insert into alumnos values(bol,idP,edo);
     insert into contrasenas values(idC,idP,md5(pat));
     insert into relacionalumnossemestre value(idP, 1);
@@ -259,7 +264,7 @@ set existe = (Select count(*) from profesores where numTrabajador = numT);
 if (existe = 0) then 
 	set idP = (Select ifnull(max(idPer),0) +1 from personas);
     set idC = (Select ifnull(max(idContra),0) +1 from contrasenas);
-    insert into personas values(idP,idT,g,nom,pat,mat,fech,mail);
+    insert into personas values(idP,idT,g,nom,pat,mat,fech);
     insert into profesores values(numT,idP);
     insert into contrasenas values(idC,idP,md5(pat));
 else
@@ -1281,9 +1286,9 @@ begin
 declare existe int;
 declare msj nvarchar(200);
 
-set existe = (select count(*) from personas where idPer = idP);
+set existe = (select count(*) from correoPersonas where idPer = idP);
 if existe = 1 then
-	set msj = (select correo from personas where idPer = idP);
+	set msj = (select correo from correoPersonas where idPer = idP);
 else
     set msj = 'no existe el USR';
 end if;
@@ -1298,9 +1303,9 @@ create procedure spCambiaMail(in idP int,in ncorreo nvarchar(100))
 begin
 declare existe int;
 declare msj nvarchar(200);
-set existe = (select count(*) from personas where idPer = idP);
+set existe = (select count(*) from correoPersonas where idPer = idP);
 if existe = 1 then
-	update personas set correo = ncorreo where idPer = idP;
+	update correoPersonas set correo = ncorreo where idPer = idP;
     set msj = 'ok';
 else
 	set msj = 'USR no encontrado';
@@ -1704,7 +1709,13 @@ end; :v
 
 delimiter ;
 
+drop procedure if exists spCodigoCorreo;
+delimiter :v
+create procedure spCodigoCorreo(in idCo int, in cor nvarchar(300))
+begin
+	declare existe int;
+    set existe = (select count(*) from 
 
-create view vwQuienVino as select
-	vu.materia, vu.Nombre, vu.idDia, vu.idMateria, va.* from vwunidadeshorarios vu
-    inner join vwasistenciama va on va.idProfesor = vu.idProfesor;
+end;:v
+delimiter ;
+
