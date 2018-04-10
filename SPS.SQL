@@ -2,7 +2,7 @@
 
 drop view if exists vwPersonas;
 create view vwPersonas as
-select p.idPer 'idPersona',  p.idTipo, t.tipo, p.paterno,p.materno, p.nombre ,g.genero, p.fecha,p.correo from Personas p
+select p.idPer 'idPersona',  p.idTipo, t.tipo, p.paterno,p.materno, p.nombre ,g.genero, p.fecha from Personas p
 	inner join genero g on g.idGenero = p.idGenero
     inner join tipopersona t on t.idTipo = p.idTipo
 group by p.idPer;
@@ -114,7 +114,7 @@ select vwUH.*, vwA.boleta from vwunidadeshorarios vwUH
     order by boleta;
 select * from vwHorarioAlumnos;
 
-
+drop view if exists vwQuienVino;
 create view vwQuienVino as select
 	vu.materia, vu.Nombre, vu.idDia, vu.idMateria, va.* from vwunidadeshorarios vu
     inner join vwasistenciama va on va.idProfesor = vu.idProfesor;
@@ -872,7 +872,7 @@ end; :v
 delimiter ;
 
 drop procedure if exists spAsistencia;
-delimiter **
+delimiter :v
 create procedure spAsistencia(in idP int)
 begin
 declare msj nvarchar(200);
@@ -912,49 +912,49 @@ else
 end if;
 
 select msj;
-end;**
+end;:v
 delimiter ;
 
 drop procedure if exists spConsultaA;
-delimiter **
+delimiter :v
 create procedure spConsultaA(in idAl int, in mes int)
 begin
 
 select * from vwasistencia where idalumno = idAl and idMes = mes;
 
-end; **
+end; :v
 delimiter;
 
 drop procedure if exists spConsultaAM;
-delimiter **
+delimiter :v
 create procedure spConsultaAM(in idMa int, in mes int)
 begin
 
 select * from vwasistenciama where idProfesor = idMa and idMes = mes;
 
-end;**
+end;:v
 delimiter;
 
 drop procedure if exists spConsultaAT;
-delimiter ** 
+delimiter :v
 create procedure spConsultaAT(in idP int)
 begin
 select count(*) as 'dias asistidos' from asistenciaAlumnos where idAlumno = idP and idAsistencia = 1;
 
-end;**
+end;:v
 delimiter ;
 
 drop procedure if exists spConsultaATM;
-delimiter ** 
+delimiter :v
 create procedure spConsultaATM(in idP int)
 begin
 select count(*) as 'dias asistidos' from asistenciamaestros where idProfesor = idP and idAsistencia = 1;
 
-end;**
+end;:v
 delimiter ;
 
 drop procedure if exists spGuardaImg;
-delimiter **
+delimiter :v
 create procedure spGuardaImg(in idP int,in i nvarchar(200))
 begin 
 declare msj nvarchar(200);
@@ -978,7 +978,7 @@ else
 	end if;
 end if;
 select msj;
-end;**
+end;:v
 delimiter ;
 
 
@@ -1094,7 +1094,7 @@ group by ua.idUnidad
 order by ua.idUnidad;
 
 drop procedure if exists spTraeUnidades;
-delimiter **
+delimiter :v
 create procedure spTraeUnidades(in idMa int)
 begin
 declare msj nvarchar(200);
@@ -1102,7 +1102,7 @@ declare existe int;
 
 select * from vwTraeUnidades where idProfesor = idMa;
 
-end;**
+end;:v
 delimiter ;
 
 call spConsultaAT(1);
@@ -1149,11 +1149,11 @@ select A.asistecia,Aa.dia,ag.idGrupo,g.idTurno,aa.idMes from asistenciaalumnos A
     inner join grupos g on g.idGrupo = ag.idGrupo
 group by Aa.idAA;
 drop procedure if exists spConsultaAXT;
-delimiter **
+delimiter :v
 create procedure spConsultaAXT(in T int,in mes int)
 begin
 	select count(*) from vwasistenciaTurnosDia where idturno = T and idmes = mes;
-end; **
+end; :v
 delimiter ;
 call spConsultaAXT(1,10);##turno por mes //falta que regrese faltas
 
@@ -1194,7 +1194,7 @@ select u.idUnidad,m.materia,g.grupo,g.idTurno 'Truno',g.idTipoGrupo,tg.idArea,a.
 group by u.idUnidad;
 select * from vwTraeDatosUnidad;
 drop procedure if exists spDatosUnidad;
-delimiter **
+delimiter :v
 create procedure spDatosUnidad(in g nvarchar(20), in idM int)
 begin
 declare existe int;
@@ -1207,7 +1207,7 @@ else
 	set existe = 0;	
 end if;
 
-end; **
+end; :v
 delimiter ;
 call spDatosUnidad('sin grupo',1);
 call spDatosUnidad('sin grupo',5);
@@ -1238,7 +1238,7 @@ group by Aa.idAA;
 select * from vwAsistenciaXUnidades;
 
 drop procedure if exists spAsistenciaUnidad;
-delimiter **
+delimiter :v
 create procedure spAsistenciaUnidad(in u nvarchar(20))
 begin
 declare existe int;
@@ -1252,7 +1252,7 @@ else
 end if;
 
 
-end; **
+end; :v
 delimiter ;
 call spAsistenciaUnidad(1);
 
@@ -1268,19 +1268,19 @@ select g.grupo,tg.semestre,t.turmo,a.area 'especialidad' from grupos g
 group by g.idGrupo;
 select * from vwTraeDatosGrupo;
 drop procedure if exists spDatosGrupo;
-delimiter **
+delimiter :v
 create procedure spDatosGrupo()
 begin
 
 	select * from vwTraeDatosGrupo;
 
-end; **
+end; :v
 
 delimiter ;
 call spDatosGrupo();
 
 drop procedure if exists spTraeMail;
-delimiter **
+delimiter :v
 create procedure spTraeMail(in idP int)
 begin
 declare existe int;
@@ -1294,11 +1294,11 @@ else
 end if;
 
 select existe,msj;
-end;**
+end;:v
 delimiter ;
 
 drop procedure if exists spCambiaMail;
-delimiter **
+delimiter :v
 create procedure spCambiaMail(in idP int,in ncorreo nvarchar(100))
 begin
 declare existe int;
@@ -1311,7 +1311,7 @@ else
 	set msj = 'USR no encontrado';
 end if;
 select existe,msj;
-end;**
+end;:v
 delimiter ;
 
 select * from vwalumnos;
@@ -1390,13 +1390,13 @@ select * from vwAsistenciaTotalUnidades;
 select * from asistenciaalumnos;
 
 drop procedure if exists spAsistenciaUnidadMes;
-delimiter **
+delimiter :v
 create procedure spAsistenciaUnidadMes(in idu int,in m int)
 begin
 
 select * from vwAsistenciaTotalUnidades where idUnidad = idu and Mes = m;
 
-end; **
+end; :v
 delimiter ;
 
 drop procedure if exists spATotal;
@@ -1414,7 +1414,7 @@ call spATotal(1,12);
 
 drop procedure if exists spDatosGrupoEspecifico;
 
-delimiter **
+delimiter :v
 
 CREATE PROCEDURE spDatosGrupoEspecifico (in g nvarchar(20))
 begin
@@ -1427,7 +1427,7 @@ else
 	set existe = 0;	
 end if;
 
-end; **
+end; :v
 
 delimiter ;
 
@@ -1439,7 +1439,7 @@ create function fFaltas(idAl int,m int)returns int
 begin 
 declare f int;
 
-set f = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 2  and idAlumno = idAl and mes = m group by idAlumno),0);
+set f = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 2  and idAlumno = idAl and idmes = m group by idAlumno),0);
 
 return f;
 end **
@@ -1618,23 +1618,23 @@ SET SQL_SAFE_UPDATES = 0;
 call spGuardaNotificacion(1,'prueba2','wspero que no crashée','algo.com','n');
 
 drop procedure if exists spNotificaciones;
-delimiter **
+delimiter :v
 create PROCEDURE spNotificaciones(in t int)
 begin
 select * from vwnotificaciones where idTipoN = t;
 
-end;**
+end;:v
 delimiter ;
 call spNotificaciones(2);
 
 drop procedure if exists spTraeNoti;
-delimiter **
+delimiter :v
 create procedure spTraeNoti(in id int)
 begin
 
 select * from vwnotificaciones where idNoti = id;
 
-end; **
+end; :v
 delimiter ;
 call spTraeNoti(1);
 
@@ -1709,7 +1709,7 @@ end; :v
 
 delimiter ;
 
-drop procedure if exists spCodigoCorreo;
+/*drop procedure if exists spCodigoCorreo;
 delimiter :v
 create procedure spCodigoCorreo(in idCo int, in cor nvarchar(300))
 begin
@@ -1718,4 +1718,4 @@ begin
 
 end;:v
 delimiter ;
-
+*/
