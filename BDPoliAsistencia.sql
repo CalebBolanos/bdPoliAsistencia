@@ -247,10 +247,13 @@ drop table if exists notificaciones;
 create table notificaciones(
 idNoti int not null primary key,
 idTipoN int not null,
+idPer int not null,
 titulo nvarchar(100),
 info nvarchar(250),
+fecha date,
 url nvarchar(300),
-foreign key(idTipoN) references TipoNotificacion(idTipoN)
+foreign key(idTipoN) references TipoNotificacion(idTipoN),
+foreign key(idPer) references personas(idPer)
 );
 
 create table relImgNot(
