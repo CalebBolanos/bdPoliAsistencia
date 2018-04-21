@@ -1550,14 +1550,14 @@ delimiter ;
 */
 drop procedure if exists spGuardaNotificacion;
 delimiter **
-create procedure spGuardaNotificacion(in tipoN int,in T nvarchar(100),in des nvarchar(250),in link nvarchar(300),in imagen nvarchar(200))
+create procedure spGuardaNotificacion(in tipoN int,in per int,in T nvarchar(100),in des nvarchar(250),in link nvarchar(300),in imagen nvarchar(200))
 begin
 declare id,im int;
 declare msj nvarchar(100);
 
 set id = (select ifnull(max(idNoti),0)+1 from notificaciones);
 
-insert into notificaciones values(id,tipoN,T,des,link);
+insert into notificaciones values(id,tipoN,per,T,des,link);
 if imagen = '' then
 	set im =(select ifnull(max(idImg),0)+1 from imgNotificaciones);
     insert into imgnotificaciones values(im,' ');
@@ -1574,7 +1574,7 @@ end; **
 delimiter ;
 
 drop function if exists fBorraImgN;
-delimiter **
+delimiter :v
 create function fBorraImgN(id int) returns nvarchar(100)
 begin
 declare msj nvarchar(100);
@@ -1587,15 +1587,18 @@ set existe = (select count(*)from imgnotificaciones where idImg = id);
 		set msj = 'id incorrecto';
     end if;
 return msj;
-end; **
+end; :v
 delimiter ;
 
 drop view if exists vwNotificaciones;
 create view vwNotificaciones as
-select n.*,tn.tipoN,im.img from Notificaciones n
+select n.*,concat(p.nombre,' ',p.paterno,' ' ,p.materno)'nombre',imp.img'imgP',tn.tipoN,im.img 'imgN' from Notificaciones n
 	inner join tiponotificacion tn on tn.idTipoN = n.idTipoN
 	inner join relImgNot ri on ri.idNot = n.idNoti
     inner join imgNotificaciones im on im.idImg = ri.idImg
+    inner join personas p on p.idPer = n.idPer
+    inner join relimg on relimg.idPer = p.idPer
+    inner join imagenes imp on imp.idImg = relimg.idImg
 group by n.idNoti;
 
 drop procedure if exists spBorraNotificacion;
@@ -1719,3 +1722,4 @@ begin
 end;:v
 delimiter ;
 */
+
