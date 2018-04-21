@@ -300,9 +300,9 @@ insert into mes values(10,'octubre');
 insert into mes values(11,'noviemrbre');
 insert into mes values(12,'diciembre');
 
-insert into personas values(-1, 3, 1, 'Sin Profesor', '','','2000-01-01','sinsignar');
+insert into personas values(-1, 3, 1, 'Sin Profesor', '','','2000-01-01');
 insert into profesores values('Sin asignar',-1);
-insert into personas values(0, 3, 1, 'Sin Profesor', '','','2000-01-01','alumno');
+insert into personas values(0, 3, 1, 'Sin Profesor', '','','2000-01-01');
 insert into profesores values('',0);
 
 insert into asistencia values (1,'si');
