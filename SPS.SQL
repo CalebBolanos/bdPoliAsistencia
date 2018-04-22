@@ -1557,7 +1557,7 @@ declare msj nvarchar(100);
 
 set id = (select ifnull(max(idNoti),0)+1 from notificaciones);
 
-insert into notificaciones values(id,tipoN,per,T,des,link);
+insert into notificaciones values(id,tipoN,per,T,des,date(now()),link);
 if imagen = '' then
 	set im =(select ifnull(max(idImg),0)+1 from imgNotificaciones);
     insert into imgnotificaciones values(im,' ');
@@ -1723,3 +1723,5 @@ end;:v
 delimiter ;
 */
 
+call spGuardaNotificacion(1,1,'a ver al cine','si funciona caleb','','');
+call spNotificaciones(1);
