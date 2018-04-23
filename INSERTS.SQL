@@ -313,3 +313,5 @@ delete from TipoNotificacion where idTipoN !=0;
 insert into TipoNotificacion values(1,'Para Alumnos');
 insert into TipoNotificacion values(2,'Para maestros');
 insert into TipoNotificacion values(3,'General');
+
+insert into imagenes values(1,'default.jpg');
