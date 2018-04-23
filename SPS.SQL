@@ -257,7 +257,7 @@ drop procedure if exists spGuardaDocente;
 delimiter **
 create procedure spGuardaDocente(in idT int,in g int, in pat nvarchar(250),in mat nvarchar(250), in nom nvarchar(250), in fech date, in mail nvarchar(250),in numT nvarchar(15))
 begin
-declare existe,idP,idC int;
+declare existe,idP,idC,idim int;
 declare msj nvarchar(200);
 
 set existe = (Select count(*) from profesores where numTrabajador = numT);
@@ -267,6 +267,7 @@ if (existe = 0) then
     insert into personas values(idP,idT,g,nom,pat,mat,fech);
     insert into profesores values(numT,idP);
     insert into contrasenas values(idC,idP,md5(pat));
+    insert into relimg values(idp,1);
 else
 	set msj = 'Ya existe un usuario con ese numero de trabajador';
     set idP = 0;
@@ -1139,7 +1140,7 @@ select img from imagenes where idImg = id;
 end; **
 delimiter ;
 call spTraeImg(11);
-call spGuardaImg(1, 'prueba2');
+call spGuardaImg(2, 'prueba2');
 
 drop view if exists vwasistenciaTurnosDia;
 create view vwasistenciaTurnosDia as 
@@ -1618,7 +1619,7 @@ end;**
 
 delimiter ;
 SET SQL_SAFE_UPDATES = 0;
-call spGuardaNotificacion(1,'prueba2','wspero que no crashée','algo.com','n');
+call spGuardaNotificacion(1,1,'prueba2','wspero que no crashée','algo.com','n');
 
 drop procedure if exists spNotificaciones;
 delimiter :v
