@@ -51,6 +51,8 @@ where vwP.idTipo = 2
 group by vwP.idPersona;
 select * from vwAlumnosConGrupo;
 
+
+
 drop view if exists vwTrabajadores;
 create view vwTrabajadores as
 select vwP.*,p.numTrabajador from vwPersonas vwP
@@ -245,6 +247,7 @@ if (existe = 0) then
     insert into contrasenas values(idC,idP,md5(pat));
     insert into relacionalumnossemestre value(idP, 1);
     insert into alumnosgrupo value(idP, -1);
+    insert into relimg values(1,idp);
     set msj = 'Ok';
 else
 	set msj = 'Ya existe un usuario con esa boleta';
@@ -267,7 +270,7 @@ if (existe = 0) then
     insert into personas values(idP,idT,g,nom,pat,mat,fech);
     insert into profesores values(numT,idP);
     insert into contrasenas values(idC,idP,md5(pat));
-    insert into relimg values(idp,1);
+    insert into relimg values(1,idp);
 else
 	set msj = 'Ya existe un usuario con ese numero de trabajador';
     set idP = 0;
@@ -953,7 +956,6 @@ select count(*) as 'dias asistidos' from asistenciamaestros where idProfesor = i
 
 end;:v
 delimiter ;
-
 drop procedure if exists spGuardaImg;
 delimiter :v
 create procedure spGuardaImg(in idP int,in i nvarchar(200))
@@ -996,6 +998,7 @@ call spValidaUsr('12', 'Olvera');
 ##create procedure spGuardaDocente(in idT int,in g int, in pat nvarchar(250),in mat nvarchar(250), in nom nvarchar(250), in fech date, in mail nvarchar(250),in numT nvarchar(15),in hu longblob)
 call spGuardaDocente(3, 1, 'profesor', 'profesor', 'profesor', '2000-02-17', 'profesor', 'profesor');
 call spGuardaDocente(4, 1, 'jefe', 'Mendoza', 'Alexis', '2000-02-17', 'alexis.ol.me@gmail.com', 'jefe');
+call spGuardaDocente(5, 1, 'prefecto', 'prefecto', 'prefecto', '2000-02-17', 'alexis.ol.me@gmail.com', 'prefecto');
 call spGuardaDocente(1, 1, 'gest', 'Mendoza', 'Alexis', '2000-02-17', 'alexis.ol.me@gmail.com', 'gest');
 call spGuardaDocente(1, 1, 'Olvera', 'Mendoza', 'Alexis', '2000-02-17', 'alexis.ol.me@gmail.com', '12');
 call spGuardaDocente(2, 1, '', '', 'Sin asignar', '2000-02-17', '', '1');
@@ -1726,3 +1729,25 @@ delimiter ;
 
 call spGuardaNotificacion(1,1,'a ver al cine','si funciona caleb','','');
 call spNotificaciones(1);
+
+
+drop procedure spTraerIdPer;
+delimiter :v 
+create procedure spTraerIdPer(in bolet nvarchar(50)) begin
+declare existe, idPp int;
+set idPp = 0;
+set existe = (select count(*) from alumnos where boleta = bolet);
+if existe != 0 then
+	set idPp = (select idPer from alumnos where boleta = bolet);
+else
+	set existe = (select count(*) from vwtrabajadores where numTrabajador = bolet);
+    if existe != 0 then
+		set idPp = (select idPer from vwtrabajadores where numTrabajador = bolet);
+    end if;
+end if;
+select idPp;
+end; :v
+
+delimiter ;
+
+call spTraerIdPer('pm2016928');
