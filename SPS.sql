@@ -1738,11 +1738,11 @@ declare existe, idPp int;
 set idPp = 0;
 set existe = (select count(*) from alumnos where boleta = bolet);
 if existe != 0 then
-	set idPp = (select idPer from alumnos where boleta = bolet);
+	set idPp = (select idPersona from alumnos where boleta = bolet);
 else
 	set existe = (select count(*) from vwtrabajadores where numTrabajador = bolet);
     if existe != 0 then
-		set idPp = (select idPer from vwtrabajadores where numTrabajador = bolet);
+		set idPp = (select idPersona from vwtrabajadores where numTrabajador = bolet);
     end if;
 end if;
 select idPp;
@@ -1750,4 +1750,6 @@ end; :v
 
 delimiter ;
 
-call spTraerIdPer('pm2016928');
+call spTraerIdPer('jefe');
+
+select * from personas;
