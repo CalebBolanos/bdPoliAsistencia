@@ -1733,7 +1733,7 @@ call spGuardaNotificacion(1,1,'a ver al cine','si funciona caleb','','');
 call spNotificaciones(1);
 
 
-drop procedure spTraerIdPer;
+drop procedure if exists spTraerIdPer;
 delimiter :v 
 create procedure spTraerIdPer(in bolet nvarchar(50)) begin
 declare existe, idPp int;

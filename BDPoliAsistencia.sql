@@ -1,3 +1,5 @@
+SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
+SET SQL_SAFE_UPDATES = 0;
 drop database if exists BDPoliAsistencia;
 create database BDPoliAsistencia;
 use BDPoliAsistencia;
