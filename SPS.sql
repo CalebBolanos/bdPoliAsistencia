@@ -956,6 +956,7 @@ select count(*) as 'dias asistidos' from asistenciamaestros where idProfesor = i
 
 end;:v
 delimiter ;
+							    
 drop procedure if exists spGuardaImg;
 delimiter :v
 create procedure spGuardaImg(in idP int,in i nvarchar(200))
@@ -975,8 +976,9 @@ else
 		insert into relimg values(existe,idP);
 		set msj = 'ok';
 	else
-		set existe = (Select idImg from relimg where idPer = idP);
-        update imagenes set img = i where idImg = existe;
+		set existe = (select ifnull(max(idImg),0)+1 from imagenes);
+		insert into imagenes values(existe,i);
+        update relimg set idImg = existe where idPer = idP;
         set msj = 'ok';
 	end if;
 end if;
