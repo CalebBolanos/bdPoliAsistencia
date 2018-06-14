@@ -1752,6 +1752,28 @@ end; :v
 
 delimiter ;
 
+drop procedure if exists spDatosAlumnos;
+delimiter **
+create procedure spDatosAlumnos()
+begin
+
+	select * from vwalumnoscongrupo;
+
+end; **
+delimiter ;
+
+
+/*============================================*/
+call spDatosAlumnos();
+
+
+call spConsultaAXTD(1,6,14);##t, m, d
+call spAsistenciaTurnoDia(6,14,1);##m, d, t
+
 call spTraerIdPer('jefe');
 
 select * from personas;
+call spAsistenciaTurnoMes(4, 1);
+call spConsultaAXT(1, 4);
+
+
