@@ -227,7 +227,40 @@ return msj;
 end; **
 delimiter ;
 
+drop function if exists fFalta;
+delimiter **
+create function fFalta(idAl int)  returns nvarchar(200)
+begin 
+declare msj nvarchar(200);
+declare ida int;
 
+set ida = (select ifnull(max(idAA),0)+1 from asistenciaalumnos);
+insert into asistenciaalumnos values(ida,idAl,2,day(now()),(month(now())),year(now()),(dayofweek(now()))-1);
+insert into horaentrada values(ida,'00:00:00');
+insert into horasalida values(ida,'00:00:00');
+set msj = 'falta ok';
+
+return msj;
+end; **
+delimiter ;
+
+drop function if exists fFaltaMa;
+delimiter **
+create function fFaltaMa(idMa int)  returns nvarchar(200)
+begin 
+declare msj nvarchar(200);
+declare ida int;
+
+set ida = (select ifnull(max(idAM),0)+1 from asistenciaMaestros);
+insert into asistenciaMaestros values(ida,idMa,1,day(now()),(month(now())),year(now()),(dayofweek(now()))-1);
+insert into horaentradaMa values(ida,'00:00:00');
+insert into horasalidaMa values(ida,'00:00:00');
+set msj = 'falta ok';
+
+return msj;
+end; **
+delimiter ;
+					 
 ##select fGuardaHuella(1,'nlasdjkflaksdjgflakenlacjnasjkdnf');
 ##insert into personas values(idP,2,g,nom,pat,mat,fech,mail);
 select * from personas;
@@ -1771,7 +1804,60 @@ begin
 
 end; **
 delimiter ;
+				     
+drop procedure if exists spFinAlumnos;
+delimiter :v
+create procedure spFinAlumnos()
+begin
+declare msj nvarchar(200);
+declare i,maximo,existe,idT int;
+set maximo = (select max(idPersona) from vwalumnos);
+set i = (select min(idpersona) from vwalumnos);
+WHILE (maximo >= i) DO
+set existe = (select count(*)from asistenciaalumnos where idAlumno=i and dia = DAY(NOW()) and idmes= month(now()) );
+    if existe = 0 then
+		set msj = (select fFalta(i));
+    else
+		set idT = (select max(idAA) from asistenciaalumnos where idAlumno = i and dia = DAY(NOW()) and idmes= month(now()));
+		set existe = (select count(*) from horasalida where idAsistencia = idT);
+        if existe = 1 then
+			set msj = 'ok';
+        else
+			set msj = (select fsalida (idP,idT));
+        end if;
+    end if;
+    set i = i+1;
+END WHILE ;
+select 'ok';
+end; :v
+delimiter ;
 
+drop procedure if exists spFinTrabajadores;
+delimiter :v
+create procedure spFinTrabajadores()
+begin
+declare msj nvarchar(200);
+declare i,maximo,existe,idT int;
+set maximo = (select max(idPersona) from vwtrabajadores);
+set i = (select min(idpersona) from vwalumnos);
+WHILE (maximo >= i) DO
+set existe = (select count(*)from asistenciamaestros where idProfesor=i and dia = DAY(NOW()) and idmes= month(now()) );
+    if existe = 0 then
+		set msj = (select fFaltaMa(i));
+    else
+		set idT = (select max(idAA) from asistenciamaestros where idProfesor=i and dia = DAY(NOW()) and idmes= month(now()));
+		set existe = (select count(*) from horasalida where idAsistencia = idT);
+        if existe = 1 then
+			set msj = 'ok';
+        else
+			set msj = (select fsalidaMa (idP,idT));
+        end if;
+    end if;
+    set i = i+1;
+END WHILE ;
+
+end; :v
+delimiter ;
 
 /*============================================*/
 call spDatosAlumnos();
