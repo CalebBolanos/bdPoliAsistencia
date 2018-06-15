@@ -879,43 +879,52 @@ drop procedure if exists spAsistencia;
 delimiter :v
 create procedure spAsistencia(in idP int)
 begin
-declare msj nvarchar(200);
-declare idT,existe,existee int;
+declare msj,foto nvarchar(200);
+declare idT,existe,existee,im int;
 set existe = (select count(*) from alumnos where idPer = idP);
 if existe = 1 then
+	set im = (select idimg from relimg where idPer = idp);
 	set existee = (select count(*)from asistenciaalumnos where idAlumno= idP and dia = DAY(NOW()) and idmes= month(now()) );
     if existee = 0 then
-		set msj = (select fEntrada(idP));
+		set msj = (select fEntrada(idp));
+        set foto = (select img from imagenes where idImg=im);
     else
 		set idT = (select max(idAA) from asistenciaalumnos where idAlumno = idP and dia = DAY(NOW()) and idmes= month(now()));
 		set existee = (select count(*) from horasalida where idAsistencia = idT);
         if existee = 1 then
 			set msj = (select fEntrada(idP));
+            set foto = (select img from imagenes where idImg=im);
         else
 			set msj = (select fsalida (idP,idT));
+            set foto = (select img from imagenes where idImg=im);
         end if;
     end if;
 else
 	set existe = (select count(*) from profesores where idPer = idP);
     if existe = 1 then
+		set im = (select idimg from relimg where idPer = idp);
 		set existee = (select count(*)from asistenciamaestros where idProfesor= idP and dia = DAY(NOW()) and idmes= month(now()) );
 		if existee = 0 then
 			set msj = (select fEntradaMa(idP));
+            set foto = (select img from imagenes where idImg=im);
 		else
 			set idT = (select max(idAM) from asistenciamaestros where idProfesor = idP and dia = DAY(NOW()) and idmes= month(now()));
 			set existee = (select count(*) from horasalidaMa where idAsistencia = idT);
             if existee = 1 then
 				set msj = (select fEntradaMa(idP));
+                set foto = (select img from imagenes where idImg=im);
 			else
 				set msj = (select fsalidaMa(idP,idT));
+                set foto = (select img from imagenes where idImg=im);
 			end if;
         end if;
 	else
 		set msj = 'no se encuentra el registro';
+        set foto = (select img from imagenes where idImg=1);
     end  if;
 end if;
 
-select msj;
+select msj,foto;
 end;:v
 delimiter ;
 
