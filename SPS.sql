@@ -1507,7 +1507,7 @@ declare asistencias,faltas int;
 select asistencias,faltas;
 end; %%
 delimiter ;
-call spATotalGrupo(1,'sin grupo');
+call spATotalGrupo(5,'6IM7');
 
 
 drop procedure if exists spAsistenciaTurnoDia;
@@ -1614,7 +1614,8 @@ select n.*,concat(p.nombre,' ',p.paterno,' ' ,p.materno)'nombre',imp.img'imgP',t
     inner join personas p on p.idPer = n.idPer
     inner join relimg on relimg.idPer = p.idPer
     inner join imagenes imp on imp.idImg = relimg.idImg
-group by n.idNoti;
+group by n.idNoti
+order by n.idNoti desc;
 
 drop procedure if exists spBorraNotificacion;
 delimiter **
@@ -1784,5 +1785,11 @@ call spTraerIdPer('jefe');
 select * from personas;
 call spAsistenciaTurnoMes(4, 1);
 call spConsultaAXT(1, 4);
+
+
+call spATotalGrupo(5,'6IM7');
+call spAsistenciaGrupo(5,'6IM7');
+call spConsultaA(1,6);
+
 
 
