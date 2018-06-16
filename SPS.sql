@@ -1493,6 +1493,19 @@ return f;
 end **
 delimiter ;
 
+				     
+drop function if exists fAsistencias;
+delimiter **
+create function fAsistencias(idAl int,m int)returns int
+begin 
+declare a int;
+
+set a = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 1  and idAlumno = idAl and idmes = m group by idAlumno),0);
+
+return a;
+end **
+delimiter ;
+
 drop view if exists vwAsistenciaGXM;
 drop procedure if exists spAsistenciaGrupo;
 delimiter %%
@@ -1571,7 +1584,7 @@ delimiter %%
 create procedure spAsistenciaTurnoMes(in m int,in t int)
 begin
 
-select (select count(a.asistecia) where a.asistecia = 'si')'Asistidos',(select fFaltas(aa.idAlumno,m))'faltas',aa.idMes,g.idTurno,concat(ag.paterno,' ',ag.materno,' ',ag.nombre) nombre,ag.boleta,ag.Grupo from asistenciaalumnos Aa 
+select (select fAsistencias(aa.idAlumno,m))'Asistidos',(select fFaltas(aa.idAlumno,m))'faltas',aa.idMes,g.idTurno,concat(ag.paterno,' ',ag.materno,' ',ag.nombre) nombre,ag.boleta,ag.Grupo from asistenciaalumnos Aa 
 	inner join asistencia a on a.idAsistencia = Aa.idAsistencia
     inner join vwalumnoscongrupo ag on ag.idPersona = Aa.idAlumno
      inner join grupos g on g.Grupo = ag.Grupo
