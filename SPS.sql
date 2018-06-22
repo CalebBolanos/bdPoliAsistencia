@@ -129,7 +129,7 @@ begin
 declare idHu,idPH,existe int;
 declare msj nvarchar(100);
 set existe = (select count(*) from perhuella where idPer = idP);
-if existe = 0 then
+if existe < 10 then
 	set idHu = (select ifnull(max(idHuella),0)+1 from huellas);
 	set idPH = (select ifnull(max(idPerHuella),0)+1 from perhuella);
     insert into huellas values(idHu,hu);
