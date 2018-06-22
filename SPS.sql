@@ -1808,15 +1808,26 @@ end; :v
 
 delimiter ;
 
-drop procedure if exists spDatosAlumnos;
-delimiter **
-create procedure spDatosAlumnos()
-begin
+drop view if exists vwDatosAlumnos;
+create view vwDatosAlumnos as
+select vwP.*,a.boleta,e.estado, re.semestre, gr.grupo,t.turmo'turno',ar.area from vwPersonas vwP
+	inner join alumnos a on a.idPer = vwP.idPersona
+    inner join estado e on e.idEstado = a.idEstado
+    inner join relacionalumnossemestre re on re.idAlumno = a.idPer
+    inner join alumnosGrupo gru on gru.idPer = a.idPer
+    inner join grupos gr on gr.idGrupo = gru.idGrupo
+    inner join turnos t on t.idTurno = gr.idTurno
+    inner join tipogrupo tg on tg.idTipoG = gr.idTipoGrupo
+    inner join areas ar on ar.idArea = tg.idArea
+    
+where vwP.idTipo = 2
+group by vwP.idPersona;
 
-	select * from vwalumnoscongrupo;
+select * from areas;
 
-end; **
-delimiter ;
+update areas set area = 'Maquinas' where idArea = 2;
+update areas set area = 'Sistemas' where idArea = 3;
+update areas set area = 'Progra' where idArea = 4;
 				     
 drop procedure if exists spFinAlumnos;
 delimiter :v
