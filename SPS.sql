@@ -1882,7 +1882,7 @@ END WHILE ;
 
 end; :v
 delimiter ;
-				     
+/**
 use sys;
 create user 'obed'@'localhost' identified by 'n0m3l0';
 grant all privileges on *.* to 'obed'@'localhost' with grant option;
@@ -1890,7 +1890,17 @@ create user 'obed'@'%' identified by 'n0m3l0';
 grant all privileges on *.* to 'obed'@'%' with grant option;
 flush privileges;
 				     
-use bdPoliasistencia;
+use bdPoliasistencia;**/
+
+drop procedure if exists spDatosAlumnos;
+delimiter **
+create procedure spDatosAlumnos()
+begin
+
+	select * from vwDatosAlumnos;
+
+end; **
+delimiter ;
 
 /*============================================*/
 call spDatosAlumnos();
@@ -1910,5 +1920,5 @@ call spATotalGrupo(5,'6IM7');
 call spAsistenciaGrupo(5,'6IM7');
 call spConsultaA(1,6);
 
-
+call spAsistenciaGrupo(6, 'Sin grupo');
 
