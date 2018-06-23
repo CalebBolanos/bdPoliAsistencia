@@ -1922,3 +1922,30 @@ call spConsultaA(1,6);
 
 call spAsistenciaGrupo(6, 'Sin grupo');
 
+drop procedure if exists spGuardaArea;
+
+delimiter :v
+
+create procedure spGuardaArea(in nombreAr nvarchar(50), in paso nvarchar(4))
+begin
+	declare existe, idN int;
+	declare msj nvarchar(200);
+	set existe = (select count(*) from areas where area = nombreAr);
+	if existe < 1 then
+		set idN = (Select ifnull(max(idArea),0) +1 from areas);
+		insert into areas value(idN, nombreAr);
+		set msj = 'Guardado correctamente';
+	else
+		set msj = 'Ya existe esa especialidad';
+	end if;
+	select msj;
+end; :v
+
+
+
+
+
+
+
+
+
