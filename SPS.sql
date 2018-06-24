@@ -260,6 +260,26 @@ set msj = 'falta ok';
 return msj;
 end; **
 delimiter ;
+											
+drop function if exists fFaltas;
+delimiter **
+create function fFaltas(idAl int,m int)returns int
+begin 
+declare f int;
+set f = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 2  and idAlumno = idAl and idmes = m group by idAlumno),0);
+return f;
+end **
+delimiter ;
+				     
+drop function if exists fAsistencias;
+delimiter **
+create function fAsistencias(idAl int,m int)returns int
+begin 
+declare a int;
+set a = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 1  and idAlumno = idAl and idmes = m group by idAlumno),0);
+return a;
+end **
+delimiter ;
 					 
 ##select fGuardaHuella(1,'nlasdjkflaksdjgflakenlacjnasjkdnf');
 ##insert into personas values(idP,2,g,nom,pat,mat,fech,mail);
@@ -1481,37 +1501,14 @@ delimiter ;
 
 call spDatosgrupoEspecifico('sin grupo');
 
-drop function if exists fFaltas;
-delimiter **
-create function fFaltas(idAl int,m int)returns int
-begin 
-declare f int;
 
-set f = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 2  and idAlumno = idAl and idmes = m group by idAlumno),0);
-
-return f;
-end **
-delimiter ;
-
-				     
-drop function if exists fAsistencias;
-delimiter **
-create function fAsistencias(idAl int,m int)returns int
-begin 
-declare a int;
-
-set a = ifnull((select count(idAsistencia) from asistenciaalumnos where idAsistencia = 1  and idAlumno = idAl and idmes = m group by idAlumno),0);
-
-return a;
-end **
-delimiter ;
 
 drop view if exists vwAsistenciaGXM;
 drop procedure if exists spAsistenciaGrupo;
 delimiter %%
 create procedure spAsistenciaGrupo(in m int, in g nvarchar(20))
 begin
-select (select count(A.asistecia) where a.asistecia ='si')'asistidos',(select count(A.asistecia) where a.asistecia ='no')'faltados',aa.idMes,ag.Grupo,concat(ag.paterno,' ',ag.materno,' ',ag.nombre) nombre,ag.boleta from asistenciaalumnos Aa 
+select (select fAsistencias(aa.idAlumno,m))'asistidos',(select ffaltas(aa.idAlumno,m))'faltados',aa.idMes,ag.Grupo,concat(ag.paterno,' ',ag.materno,' ',ag.nombre) nombre,ag.boleta from asistenciaalumnos Aa 
 	inner join asistencia a on a.idAsistencia = Aa.idAsistencia
     inner join vwalumnoscongrupo ag on ag.idPersona = Aa.idAlumno
     where ag.grupo = g and Aa.idMes = m
