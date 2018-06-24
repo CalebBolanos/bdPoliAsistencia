@@ -809,7 +809,7 @@ if existe = 1 then
 	update unidadesaprendizaje set idProfesor = idPr where idUnidad = unidad;
     set msj = 'ok';
 else
-	set msj = 'no se encuetra el grupo';
+	set msj = 'no se encuetra la unidad';
 end if;
 
 select msj;
@@ -1941,11 +1941,53 @@ begin
 	select msj;
 end; :v
 
+drop procedure if exists spGuardaUnidadesAlumno;
+delimiter **
+create procedure spGuardaUnidadesAlumno(in unidad int, in bol nvarchar(200))
+begin
+declare existe, idPr int;
+declare msj nvarchar(200);
 
+set existe = (select count(*) from unidadesaprendizaje where idUnidad = unidad);
 
+if existe = 1 then
+	set idPr = (select idPer from alumnos where boleta = bol);
+	insert into unidadalumno value (idPr, unidad);
+    set msj = 'ok';
+else
+	set msj = 'no se encuetra la unidad';
+end if;
 
+select msj;
+end ; **
+delimiter ;
 
+drop procedure if exists spBorraAlumnoUnidad;
+delimiter :v
+create procedure spBorraAlumnoUnidad(in idUni int, in bol nvarchar(200))
+begin
+declare existe, idPr int;
+declare msj nvarchar(199);
+set existe = (select count(*) from unidadesaprendizaje where idUnidad = idUni);
+if existe >0 then 
+	set idPr = (select idPer from alumnos where boleta = bol);
+	delete from unidadalumno where idPer = idPr and idUnidad = idUni;
+    set msj = 'ok';
+else
+	set msj = 'No se pudo quitar la unidad';
+end if;
+select msj;
+end; :v
+delimiter ;
 
+drop view if exists vwUnidadesAlumnos;
+create view vwUnidadesAlumnos as
+select ua.idPer, vwuh.*, a.boleta from unidadalumno ua
+	inner join vwunidadeshorarios vwuh on vwuh.idUnidad = ua.idUnidad
+    inner join alumnos a on a.idPer = ua.idPer
+group by ua.idPer
+order by vwuh.idUnidad;
+select * from vwUnidadesAlumnos;
 
 
 
