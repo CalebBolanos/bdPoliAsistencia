@@ -1726,7 +1726,7 @@ begin
 	declare existe int;
 	set existe = (select count(*) from vwtrabajadores where numTrabajador = bol);
 	if existe = 1 then
-		select * from vwhorarioalumnos where numTrabajador = bol;
+		select * from vwunidadeshorarios where numTrabajador = bol;
 	end if;
 end; :v
 
