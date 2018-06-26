@@ -375,7 +375,7 @@ drop procedure if exists sptraerDatos;
 delimiter :v
 create procedure sptraerDatos(in bolet nvarchar(20), in llave nvarchar(20))
 begin
-declare nom, pat, mat, bol, fec, gen, semest nvarchar(200);
+declare nom, pat, mat, bol, fec, gen, semest, idPr nvarchar(200);
 declare existe int;
 if(llave = 'Pol')
 then
@@ -389,12 +389,13 @@ then
         set fec = (select fecha from vwalumnos where boleta = bolet);
         set bol = bolet;
         set semest = (select semestre from vwalumnos where boleta = bolet);
+        set idPr = (select idPersona from vwalumnos where boleta = bolet);
 	end if;
 else
 	set existe = 0;
 end if;
 
-select nom, pat, mat, gen, bol, fec, existe, semest;
+select nom, pat, mat, gen, bol, fec, existe, semest, idPr;
 end; :v
 delimiter ;
 drop procedure if exists spTraerGrupoAlumno;
