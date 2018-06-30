@@ -1295,11 +1295,10 @@ select u.idUnidad,m.materia, u.idGrupo,g.grupo,ag.idPer from unidadesaprendizaje
 select * from vwGruposUnidad;
 drop view if exists vwAsistenciaXUnidades;
 create view vwAsistenciaXUnidades as
-select Aa.idAA, Aa.dia,Aa.idMes, vwal.boleta,concat (vwal.Paterno,' ',vwal.materno,' ',vwal.nombre)'nombre',a.asistecia,vwGU.idUnidad from asistenciaalumnos Aa
-	inner join vwalumnos vwAl on vwAl.idPersona = Aa.idAlumno
-    inner join vwgruposunidad vwGU on vwGU.idPer = vwAl.idPersona
-    inner join asistencia a on a.idAsistencia = Aa.idAsistencia
-group by Aa.idAA;
+select aa.idAA,aa.idAlumno,aa.idAsistencia,aa.idmes,concat(vwal.Paterno,' ',vwal.materno,' ',vwal.nombre)'nombre',vwho.boleta,vwho.idunidad,vwho.idHorarioUnidad,vwho.idDia from asistenciaalumnos Aa
+	inner join vwalumnos vwAl on vwAl.idPersona = aa.idAlumno
+   	inner join vwhorarioalumnos vwho on vwho.boleta = vwAl.boleta and vwho.idDia = aa.idDia;
+select * from vwAsistenciaXUnidades;
 
 ##sp para alumnos con grupo y semestre 
 ##sp para grupos 
