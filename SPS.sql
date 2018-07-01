@@ -1305,23 +1305,28 @@ select * from vwAsistenciaXUnidades;
 
 drop function if exists fFaltasUnidades;
 delimiter **
-create function fFaltasUnidades(idAl int,m int,u int)returns int
+create function fFaltasUnidades(idAl int,m int,u int,tipo int)returns int
 begin 
 declare f int;
-
-set f = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 2),0);
-
+if tipo = 1 then
+	set f = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 2),0);
+else 
+	set f = ifnull((select count(*) from vwAsistenciaAlumnosXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 2),0);
+end if;
 return f;
 end **
 delimiter ;
 drop function if exists fAsistenciasUnidades;
 delimiter **
-create function fAsistenciasUnidades(idAl int,m int,u int)returns int
+create function fAsistenciasUnidades(idAl int,m int,u int,tipo int)returns int
 begin 
 declare a int;
 
-set a = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia = 1),0);
-
+if tipo = 1 then
+	set a = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 1),0);
+else 
+	set a = ifnull((select count(*) from vwAsistenciaAlumnosXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 1),0);
+end if;
 return a;
 end **
 delimiter ;
@@ -1331,7 +1336,19 @@ delimiter :v
 create procedure spAsistenciaUnidadMes(in u int,in m int)
 begin
 
-select nombre, (select fAsistenciasUnidades(idAlumno,m,u))'Asistidos',(select fFaltasUnidades(idAlumno,m,u))'faltas'  from vwasistenciaxunidades
+select boleta,nombre, (select fAsistenciasUnidades(idAlumno,m,u,1))'Asistidos',(select fFaltasUnidades(idAlumno,m,u,1))'faltas'  from vwasistenciaxunidades
+	where idUnidad = m and idMes = m
+    group by idAlumno;
+
+end; :v
+delimiter ;
+
+drop procedure if exists spAsistenciaUnidadMes2;
+delimiter :v
+create procedure spAsistenciaUnidadMes2(in u int,in m int)
+begin
+
+select boleta,nombre, (select fAsistenciasUnidades(idAlumno,m,u,2))'Asistidos',(select fFaltasUnidades(idAlumno,m,u,2))'faltas'  from vwAsistenciaAlumnosXUnidades
 	where idUnidad = m and idMes = m
     group by idAlumno;
 
@@ -1876,23 +1893,23 @@ begin
 declare msj nvarchar(200);
 declare i,maximo,existe,idT int;
 set maximo = (select max(idPersona) from vwtrabajadores);
-set i = (select min(idpersona) from vwalumnos);
+set i = (select min(idpersona) from vwtrabajadores);
 WHILE (maximo >= i) DO
 set existe = (select count(*)from asistenciamaestros where idProfesor=i and dia = DAY(NOW()) and idmes= month(now()) );
     if existe = 0 then
 		set msj = (select fFaltaMa(i));
     else
-		set idT = (select max(idAA) from asistenciamaestros where idProfesor=i and dia = DAY(NOW()) and idmes= month(now()));
+		set idT = (select max(idAM) from asistenciamaestros where idProfesor=i and dia = DAY(NOW()) and idmes= month(now()));
 		set existe = (select count(*) from horasalida where idAsistencia = idT);
         if existe = 1 then
 			set msj = 'ok';
         else
-			set msj = (select fsalidaMa (idP,idT));
+			set msj = (select fsalidaMa (i,idT));
         end if;
     end if;
     set i = i+1;
 END WHILE ;
-
+select  msj;
 end; :v
 delimiter ;
 /**
