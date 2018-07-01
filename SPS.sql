@@ -1303,29 +1303,40 @@ select * from vwAsistenciaXUnidades;
 ##sp para alumnos con grupo y semestre 
 ##sp para grupos 
 
-select * from vwAsistenciaXUnidades;
+drop function if exists fFaltasUnidades;
+delimiter **
+create function fFaltasUnidades(idAl int,m int,u int)returns int
+begin 
+declare f int;
 
-drop procedure if exists spAsistenciaUnidad;
+set f = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 2),0);
+
+return f;
+end **
+delimiter ;
+drop function if exists fAsistenciasUnidades;
+delimiter **
+create function fAsistenciasUnidades(idAl int,m int,u int)returns int
+begin 
+declare a int;
+
+set a = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia = 1),0);
+
+return a;
+end **
+delimiter ;
+				     
+drop procedure if exists spAsistenciaUnidadMes;
 delimiter :v
-create procedure spAsistenciaUnidad(in u nvarchar(20))
+create procedure spAsistenciaUnidadMes(in u int,in m int)
 begin
-declare existe int;
 
-set existe = (select count(*) from unidadesaprendizaje where idUnidad = u);
-if existe = 1 then
-	set existe =(select idUnidad from unidadesaprendizaje where idUnidad = u);
-    select * from vwAsistenciaXUnidades where idunidad = existe and dia = day(now()) and idMes = month(now());
-else
-	set existe = 0;	
-end if;
-
+select nombre, (select fAsistenciasUnidades(idAlumno,m,u))'Asistidos',(select fFaltasUnidades(idAlumno,m,u))'faltas'  from vwasistenciaxunidades
+	where idUnidad = m and idMes = m
+    group by idAlumno;
 
 end; :v
 delimiter ;
-call spAsistenciaUnidad(1);
-
-
-
 
 drop view if exists vwTraeDatosGrupo;
 create view vwTraeDatosGrupo as
