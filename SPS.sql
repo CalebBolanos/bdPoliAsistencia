@@ -2002,5 +2002,20 @@ select ua.idPer, vwuh.*, a.boleta from unidadalumno ua
 order by vwuh.idUnidad;
 select * from vwUnidadesAlumnos;
 
+drop event if exists finalizarAsistencias;
+delimiter |
+create event finalizarAsistencias
+    on schedule
+      every 1 day
+      starts timestamp(CURRENT_DATE) + interval 23 hour + interval 59 minute
+    comment 'Evento para poner faltas'
+    do
+      begin
+      if dayofweek(curdate()) in (2, 3, 4, 5, 6) then
+		call spFinAlumnos;
+        ##call spFinTrabajadores;
+	end if;
+      end |
+delimiter ;
 
-
+show events;

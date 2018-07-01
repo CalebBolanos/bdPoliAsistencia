@@ -1,3 +1,5 @@
+SHOW VARIABLES LIKE 'event_scheduler';
+SET GLOBAL event_scheduler = ON;
 SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
 SET SQL_SAFE_UPDATES = 0;
 drop database if exists BDPoliAsistencia;
