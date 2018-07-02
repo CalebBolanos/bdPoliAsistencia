@@ -2030,7 +2030,7 @@ create event finalizarAsistencias
       begin
       if dayofweek(curdate()) in (2, 3, 4, 5, 6) then
 		call spFinAlumnos;
-        ##call spFinTrabajadores;
+        call spFinTrabajadores;
 	end if;
       end |
 delimiter ;
