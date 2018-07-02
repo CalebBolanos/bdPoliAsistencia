@@ -1300,6 +1300,13 @@ select aa.idAA,aa.idAlumno,aa.idAsistencia,aa.idmes,concat(vwal.Paterno,' ',vwal
    	inner join vwhorarioalumnos vwho on vwho.boleta = vwAl.boleta and vwho.idDia = aa.idDia;
 select * from vwAsistenciaXUnidades;
 
+drop view if exists vwAsistenciaAlumnosXUnidades;
+create view vwAsistenciaAlumnosXUnidades as
+select aa.idAA,aa.idAlumno,aa.idAsistencia,aa.idmes,aa.dia,concat(vwal.Paterno,' ',vwal.materno,' ',vwal.nombre)'nombre',vwua.boleta,vwua.idunidad,vwua.idHorarioUnidad,vwua.idDia from asistenciaalumnos Aa
+	inner join vwalumnos vwAl on vwAl.idPersona = aa.idAlumno
+    	inner join vwUnidadesAlumnos vwua on vwua.boleta = vwAl.boleta and vwua.idDia = aa.idDia;
+    ;
+
 ##sp para alumnos con grupo y semestre 
 ##sp para grupos 
 
