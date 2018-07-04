@@ -2054,3 +2054,63 @@ create event finalizarAsistencias
 delimiter ;
 
 show events;
+
+drop procedure if exists spGuardaCorreo;
+delimiter :v
+
+create procedure spGuardaCorreo(in idpp int, in corre nvarchar(200))
+begin
+	declare existe, idPr, idN int;
+    declare msj nvarchar(200);
+    set msj = 'Ups ocurrio un error';
+    set idPr = idpp;
+	if idPr > 0 then 
+		set existe = (select count(*) from correopersonas where idPer = idPr);
+        if existe > 0 then 
+			update correopersonas set correo = corre where idPer = idPr;
+            update correovalidado set validado = 1 where idPer = idPr;
+            set msj = 'Correo actualizado';
+        else
+			set idN = (select ifnull(max(idCorreo),0) +1 from correopersonas);
+            insert into contrasenas value (idN, corre, idPr);
+            insert into correovalidado value (idPr, 1);
+            set msj = 'Correo actualizado';
+        end if;
+    else
+		set msj = 'No existe el usuario';
+    end if;
+    select msj;
+end; :v
+
+delimiter ;
+
+drop procedure if exists spValidaCorreo;
+
+delimiter :v
+
+create procedure spValidaCorreo(in ident nvarchar(200), in corre nvarchar(200))
+begin
+	declare existe, idPr, idN int;
+    declare msj nvarchar(200);
+    set msj = 'Ups ocurrio un error, el correo no se ha validado';
+    set idPr = 0;
+    set existe = (select count(*) from alumnos where boleta = ident);
+    if existe > 0 then
+		set idPr = (select idPer from alumnos where boleta = ident);
+    else
+		set existe = (select count(*) from profesores where numTrabajador = ident);
+        if existe > 0 then 
+			set idPr = (select idPer from profesores where numTrabajador = ident);
+        end if;
+    end if;
+    if idPr > 0 then 
+		set existe = (select count(*) from correopersonas where idPer = idPr and correo = corre);
+        if existe > 0 then
+			update correovalidado set validado = 3 where idPersona = idPr;
+			set msj = 'Correo validado';
+		end if;
+    end if;
+	select msj;
+end; :v
+
+delimiter ;
