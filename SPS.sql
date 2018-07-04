@@ -1295,16 +1295,18 @@ select u.idUnidad,m.materia, u.idGrupo,g.grupo,ag.idPer from unidadesaprendizaje
 select * from vwGruposUnidad;
 drop view if exists vwAsistenciaXUnidades;
 create view vwAsistenciaXUnidades as
-select aa.idAA,aa.idAlumno,aa.idAsistencia,aa.idmes,concat(vwal.Paterno,' ',vwal.materno,' ',vwal.nombre)'nombre',vwho.boleta,vwho.idunidad,vwho.idHorarioUnidad,vwho.idDia from asistenciaalumnos Aa
+select aa.idAA,aa.idAlumno,a.asistecia,aa.idmes,aa.dia,concat(vwal.Paterno,' ',vwal.materno,' ',vwal.nombre)'nombre',vwho.boleta,vwho.idunidad,vwho.idHorarioUnidad,vwho.idDia from asistenciaalumnos Aa
 	inner join vwalumnos vwAl on vwAl.idPersona = aa.idAlumno
-   	inner join vwhorarioalumnos vwho on vwho.boleta = vwAl.boleta and vwho.idDia = aa.idDia;
-select * from vwAsistenciaXUnidades;
+    inner join asistencia a on a.idAsistencia = aa.idAsistencia
+    inner join vwhorarioalumnos vwho on vwho.boleta = vwAl.boleta and vwho.idDia = aa.idDia;
+    ;
 
 drop view if exists vwAsistenciaAlumnosXUnidades;
 create view vwAsistenciaAlumnosXUnidades as
-select aa.idAA,aa.idAlumno,aa.idAsistencia,aa.idmes,aa.dia,concat(vwal.Paterno,' ',vwal.materno,' ',vwal.nombre)'nombre',vwua.boleta,vwua.idunidad,vwua.idHorarioUnidad,vwua.idDia from asistenciaalumnos Aa
+select aa.idAA,aa.idAlumno,a.asistecia,aa.idmes,aa.dia,concat(vwal.Paterno,' ',vwal.materno,' ',vwal.nombre)'nombre',vwua.boleta,vwua.idunidad,vwua.idHorarioUnidad,vwua.idDia from asistenciaalumnos Aa
 	inner join vwalumnos vwAl on vwAl.idPersona = aa.idAlumno
-    	inner join vwUnidadesAlumnos vwua on vwua.boleta = vwAl.boleta and vwua.idDia = aa.idDia;
+    inner join asistencia a on a.idAsistencia = aa.idAsistencia
+    inner join vwUnidadesAlumnos vwua on vwua.boleta = vwAl.boleta and vwua.idDia = aa.idDia;
     ;
 
 ##sp para alumnos con grupo y semestre 
@@ -1316,9 +1318,9 @@ create function fFaltasUnidades(idAl int,m int,u int,tipo int)returns int
 begin 
 declare f int;
 if tipo = 1 then
-	set f = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 2),0);
+	set f = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and Asistecia= 'no'),0);
 else 
-	set f = ifnull((select count(*) from vwAsistenciaAlumnosXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 2),0);
+	set f = ifnull((select count(*) from vwAsistenciaAlumnosXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and Asistecia= 'no'),0);
 end if;
 return f;
 end **
@@ -1330,9 +1332,9 @@ begin
 declare a int;
 
 if tipo = 1 then
-	set a = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 1),0);
+	set a = ifnull((select count(*) from vwAsistenciaXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and Asistecia= 'si'),0);
 else 
-	set a = ifnull((select count(*) from vwAsistenciaAlumnosXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and idAsistencia= 1),0);
+	set a = ifnull((select count(*) from vwAsistenciaAlumnosXUnidades where idAlumno = idAl and  idunidad = u and idmes = m and Asistecia= 'si'),0);
 end if;
 return a;
 end **
@@ -1360,6 +1362,25 @@ select boleta,nombre, (select fAsistenciasUnidades(idAlumno,m,u,2))'Asistidos',(
     group by idAlumno;
 
 end; :v
+delimiter ;
+				     
+drop procedure if exists spAsistenciaUnidad;
+delimiter :v
+create procedure spAsistenciaUnidad(in m int,in d int,in u int)
+begin
+
+select * from vwAsistenciaXUnidades where idmes = m and dia = d and idunidad = u;
+
+end;:v
+delimiter ;
+drop procedure if exists spAsistenciaUnidad2;
+delimiter :v
+create procedure spAsistenciaUnidad2(in m int,in d int,in u int)
+begin
+
+select * from vwasistenciaalumnosxunidades where idmes = m and dia = d and idunidad = u;
+
+end;:v
 delimiter ;
 
 drop view if exists vwTraeDatosGrupo;
@@ -1491,16 +1512,6 @@ call spAsistencia(10);
 
 select * from vwAsistenciaTotalUnidades;
 select * from asistenciaalumnos;
-
-drop procedure if exists spAsistenciaUnidadMes;
-delimiter :v
-create procedure spAsistenciaUnidadMes(in idu int,in m int)
-begin
-
-select * from vwAsistenciaTotalUnidades where idUnidad = idu and Mes = m;
-
-end; :v
-delimiter ;
 
 drop procedure if exists spATotal;
 delimiter **
