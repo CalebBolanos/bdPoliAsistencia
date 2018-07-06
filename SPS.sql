@@ -1346,7 +1346,7 @@ create procedure spAsistenciaUnidadMes(in u int,in m int)
 begin
 
 select boleta,nombre, (select fAsistenciasUnidades(idAlumno,m,u,1))'Asistidos',(select fFaltasUnidades(idAlumno,m,u,1))'faltas'  from vwasistenciaxunidades
-	where idUnidad = m and idMes = m
+	where idUnidad = u and idMes = m
     group by idAlumno;
 
 end; :v
@@ -1358,7 +1358,7 @@ create procedure spAsistenciaUnidadMes2(in u int,in m int)
 begin
 
 select boleta,nombre, (select fAsistenciasUnidades(idAlumno,m,u,2))'Asistidos',(select fFaltasUnidades(idAlumno,m,u,2))'faltas'  from vwAsistenciaAlumnosXUnidades
-	where idUnidad = m and idMes = m
+	where idUnidad = u and idMes = m
     group by idAlumno;
 
 end; :v
