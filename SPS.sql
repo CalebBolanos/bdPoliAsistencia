@@ -1300,6 +1300,14 @@ select aa.idAA,aa.idAlumno,a.asistecia,aa.idmes,aa.dia,concat(vwal.Paterno,' ',v
     inner join asistencia a on a.idAsistencia = aa.idAsistencia
     inner join vwhorarioalumnos vwho on vwho.boleta = vwAl.boleta and vwho.idDia = aa.idDia;
     ;
+    
+drop view if exists vwUnidadesAlumnos;
+create view vwUnidadesAlumnos as
+select ua.idPer, vwuh.*, a.boleta from unidadalumno ua
+	inner join vwunidadeshorarios vwuh on vwuh.idUnidad = ua.idUnidad
+    inner join alumnos a on a.idPer = ua.idPer
+order by vwuh.idUnidad;
+select * from vwUnidadesAlumnos;
 
 drop view if exists vwAsistenciaAlumnosXUnidades;
 create view vwAsistenciaAlumnosXUnidades as
@@ -2028,14 +2036,6 @@ end if;
 select msj;
 end; :v
 delimiter ;
-
-drop view if exists vwUnidadesAlumnos;
-create view vwUnidadesAlumnos as
-select ua.idPer, vwuh.*, a.boleta from unidadalumno ua
-	inner join vwunidadeshorarios vwuh on vwuh.idUnidad = ua.idUnidad
-    inner join alumnos a on a.idPer = ua.idPer
-order by vwuh.idUnidad;
-select * from vwUnidadesAlumnos;
 
 drop event if exists finalizarAsistencias;
 delimiter |
