@@ -2072,7 +2072,6 @@ begin
             set msj = 'Correo actualizado';
         else
 			set idN = (select ifnull(max(idCorreo),0) +1 from correopersonas);
-            insert into contrasenas value (idN, corre, idPr);
             insert into correovalidado value (idPr, 1);
             set msj = 'Correo actualizado';
         end if;
