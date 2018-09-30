@@ -2113,3 +2113,28 @@ begin
 end; :v
 
 delimiter ;
+###==========================
+
+
+drop procedure if exists spHuellasPersona;
+delimiter |
+create procedure spHuellasPersona(in idPersona int)
+begin
+	select * from perhuella where idPer = idPersona;
+end; |
+delimiter ;
+
+drop procedure if exists spBorrarHuella;
+delimiter |
+create procedure spBorrarHuella(in idHue int)
+begin
+	delete from perhuella where idHuella = idHue;
+    select 'ok' as msj;
+end; |
+delimiter ;
+
+
+select * from perhuella;
+select * from huellas;
+call spHuellasPersona(13);
+call spBorrarHuella(1);
