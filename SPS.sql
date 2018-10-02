@@ -206,7 +206,7 @@ begin
 declare msj nvarchar(200);
 declare ida int;
 
-set ida = (select ifnull(max(idMa),0)+1 from asistenciaMaestros);
+set ida = (select ifnull(max(idAM),0)+1 from asistenciaMaestros);
 insert into asistenciaMaestros values(ida,idMa,1,day(now()),(month(now())),year(now()),(dayofweek(now()))-1);
 insert into horaentradaMa values(ida,time(now()));
 set msj = 'entrada ok';
@@ -1520,6 +1520,9 @@ call spAsistencia(10);
 
 select * from vwAsistenciaTotalUnidades;
 select * from asistenciaalumnos;
+select * from asistencia;
+select * from asistenciaMaestros;
+select * from personas;
 
 drop procedure if exists spATotal;
 delimiter **
@@ -2133,8 +2136,10 @@ begin
 end; |
 delimiter ;
 
+select * from personas;
+select * from genero;
 
 select * from perhuella;
 select * from huellas;
-call spHuellasPersona(13);
-call spBorrarHuella(1);
+##call spHuellasPersona(15);
+##call spBorrarHuella(15);
