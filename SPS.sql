@@ -2136,10 +2136,36 @@ begin
 end; |
 delimiter ;
 
-select * from personas;
+drop procedure if exists spIdPersonaProfesor;
+delimiter |
+create procedure spIdPersonaProfesor(in numero nvarchar(15))
+begin
+	declare existe, idPer int;
+    declare msj nvarchar(50);
+    set existe = (select count(*) from vwtrabajadores where numTrabajador = numero);
+    if(existe > 0) then
+		set msj = 'ok';
+        set idPer = (select idPersona from vwtrabajadores where numTrabajador = numero);
+	else
+		set msj = 'no existe';
+        set idPer = 0;
+	end if;
+    select msj,  idPer;
+end; |
+delimiter ;
+
+select * from vwTrabajadores;
 select * from genero;
 
 select * from perhuella;
 select * from huellas;
 ##call spHuellasPersona(15);
-##call spBorrarHuella(15);
+call spBorrarHuella(1);
+
+select * from genero;
+
+call spEditaProfesor('pedrito', 'pedrita', 'pedrita', 'pedrita', 'pedrita', '2000-10-02');
+select * from vwtrabajadores;
+
+call spTraerDatosProf('pedrito', 'Pol');
+call spIdPersonaProfesor('pedrito');
