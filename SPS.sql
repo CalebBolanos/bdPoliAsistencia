@@ -740,8 +740,10 @@ if existe = 0 then
     end if;
     set idN = (select ifnull(max(idGrupo),0)+1 from grupos);
     insert into grupos value(idN, nombreGrupo, idTi, idTur);
+    set msj = 'ok';
 else
 	set msj = 'Grupo existente';
+    set idN = 0;
 end if;
 select idN, msj;
 end; :v
@@ -2169,3 +2171,14 @@ select * from vwtrabajadores;
 
 call spTraerDatosProf('pedrito', 'Pol');
 call spIdPersonaProfesor('pedrito');
+use bdpoliasistencia;
+
+select * from vwunidadeshorarios;
+select * from vwunidadeshorarios where idProfesor = 13;
+select * from vwunidadeshorarios where idProfesor < 0;
+call spBorraProfesorHorario(1, 'pantojita');
+call spGuardaUnidadesProfesor(6, 'pantojita');
+
+select * from areas;
+
+call spNuevoGrupo('grupobase2', 7, 6, 1);
