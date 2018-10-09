@@ -838,6 +838,7 @@ end if;
 select msj;
 end ; **
 delimiter ;
+
 drop procedure if exists spGuardaUnidadesGrupo;
 delimiter **
 create procedure spGuardaUnidadesGrupo(in unidad int, in profesor nvarchar(100))
@@ -2182,3 +2183,90 @@ call spGuardaUnidadesProfesor(6, 'pantojita');
 select * from areas;
 
 call spNuevoGrupo('grupobase2', 7, 6, 1);
+
+drop procedure if exists spBorrarMateria;
+delimiter |
+create procedure spBorrarMateria(in nombreMat nvarchar(300))
+begin
+	declare idMat, idUni, n int;
+    declare msj nvarchar(50);
+    set idMat = (select idMateria from materias where materia = nombreMat);
+    if(idMat > 0)then
+		set n = (select count(*) idUnidad from unidadesaprendizaje where idMateria = idMat);
+        if (n > 0) then
+			delete from horariosunidad where idUnidad in(select idUnidad from unidadesaprendizaje where idMateria = idMat);     
+			delete from materias, unidadesaprendizaje
+				using materias
+				inner join unidadesaprendizaje
+				where materia = nombreMat
+						and materias.idMateria = unidadesaprendizaje.idMateria;
+			set msj = 'ok';
+		else
+			delete from materias where materia = nombreMat;
+            set msj = 'ok';
+        end if;
+	else
+		set msj = 'no existe la unidad';
+    end if;
+    select msj;
+end; |
+delimiter ;
+
+call spBorrarMateria('aaa');
+
+##=============================================================
+
+
+select * from grupos;
+select * from tipogrupo;
+
+select * from vwgrupos;
+select * from vwgrupos where idGrupo > 0;
+
+select * from vwunidadeshorarios;
+select * from vwunidadeshorarios where idGrupo <0 and idProfesor > 0 and semestre = 6;##profesores con unidades disponibles
+select * from vwunidadeshorarios where grupo = 'pruebas';##profesores inscritos en un grupo especifico
+
+call spGuardaUnidadesGrupo(6, 'pruebas');##idunidad, nombregrupo
+call spBorraGrupoHorario(7, 'pruebas');
+call spEditaGrupo('pruebas', '1IM1', 6, 4, 1);
+
+call spNuevaMateria(1, '"uni"', 6);
+
+
+call spNuevaUnidad('" + nombreUnidad + "', " + cupo + ");##poner cupo
+call spUnidadHorario(" + idUnid + ", " + horaI + ", " + horaF + ", " + dia + ");##se debe de guardar uno por uno xd
+
+select * from materias;
+select * from vwmaterias;##directorio de unidades de aprendizaje y crear unidades con horario
+select * from especialidades;
+
+select * from vwunidadeshorarios where idProfesor < 0 and grupo = 'Sin grupo';##gestionar unidades con horarios
+select * from vwunidadeshorarios;
+select * from vwtrabajadores;
+use bdPoliAsistencia;
+select * from areas;
+
+
+
+
+
+      
+
+select idMateria from materias where materia = 'aaa';
+select min(idUnidad) from unidadesaprendizaje where idMateria = 104;
+select idUnidad from unidadesaprendizaje where idMateria = 104;
+delete from horariosunidad where idUnidad = 16;
+
+delete from horariosunidad where idUnidad in(select idUnidad from unidadesaprendizaje where idMateria = 104);
+
+delete from materias, unidadesaprendizaje
+				using materias
+				inner join unidadesaprendizaje
+				where materia = 'aaa'
+					  and materias.idMateria = unidadesaprendizaje.idMateria;
+                      
+select * from horariosunidad;
+select * from unidadesaprendizaje;
+select * from materias;
+
