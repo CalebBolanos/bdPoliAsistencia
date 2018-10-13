@@ -2212,7 +2212,27 @@ begin
 end; |
 delimiter ;
 
-call spBorrarMateria('aaa');
+call spBorrarMateria('java');
+
+drop procedure if exists spBorraUnidadEspecifica;
+delimiter |
+create procedure spBorraUnidadEspecifica(in idUni nvarchar(300))
+begin
+	declare existe int;
+    declare msj nvarchar(50);
+    set existe = (select idUnidad from unidadesaprendizaje where idUnidad = idUni);
+    if(existe > 0) then
+		delete from horariosunidad where idUnidad = idUni;
+        delete from unidadesaprendizaje where idUnidad = idUni;
+        set msj = 'ok';
+	else
+		set msj = 'no existe la unidad';
+    end if;
+    select msj;
+end; |
+delimiter ;
+
+call spBorraUnidadEspecifica(17);
 
 ##=============================================================
 
@@ -2250,9 +2270,6 @@ select * from areas;
 
 
 
-
-      
-
 select idMateria from materias where materia = 'aaa';
 select min(idUnidad) from unidadesaprendizaje where idMateria = 104;
 select idUnidad from unidadesaprendizaje where idMateria = 104;
@@ -2269,4 +2286,21 @@ delete from materias, unidadesaprendizaje
 select * from horariosunidad;
 select * from unidadesaprendizaje;
 select * from materias;
+
+##para crar unidad y asignarle horario
+call spNuevaUnidad('nombreUnidad', " + cupo + ");
+
+call spUnidadHorario(" + idUnid + ", " + horaI + ", " + horaF + ", " + dia + ");
+
+
+select * from unidadesaprendizaje;
+select * from vwunidadeshorarios;
+select * from horariosunidad;
+
+
+
+delete from unidadesaprendizaje where idUnidad = 20;
+delete from horariosunidad where idUnidad = 20;
+
+
 
