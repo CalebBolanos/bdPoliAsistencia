@@ -118,16 +118,11 @@ create table unidadesAprendizaje(
     idMateria int not null,
     idGrupo int not null,
     idProfesor int not null,
-    cupo int,
+    cupo int not null,
+    disponibilidad int not null,
     foreign key(idMateria) references materias(idMateria),
     foreign key(idGrupo) references grupos(idGrupo),
     foreign key(idProfesor) references personas(idPer)
-);
-
-create table grupoCupo(
-	idGrupo int not null,
-    cupo int not null, 
-    foreign key (idGrupo) references grupos(idGrupo)
 );
 
 create table horario(
@@ -173,12 +168,7 @@ foreign key(idPer)references alumnos(idPer),
 foreign key(idUnidad)references unidadesaprendizaje (idUnidad)
 );
 
-create table alumnosGrupo(
-idPer int not null,
-idGrupo int not null,
-foreign key(idPer)references alumnos(idPer),
-foreign key(idGrupo)references grupos(idGrupo)
-);
+
 create table asistenciaAlumnos(
 	idAA int not null primary key,
 	idAlumno int not null,

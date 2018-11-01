@@ -41,12 +41,13 @@ order by Aa.idAM;
 
 drop view if exists vwAlumnosConGrupo;
 create view vwAlumnosConGrupo as
-select vwP.*,a.boleta,e.estado, re.semestre, gr.grupo from vwPersonas vwP
+select vwP.*,a.boleta,e.estado, re.semestre, ua.idGrupo, gr.grupo from vwPersonas vwP
 	inner join alumnos a on a.idPer = vwP.idPersona
     inner join estado e on e.idEstado = a.idEstado
     inner join relacionalumnossemestre re on re.idAlumno = a.idPer
-    inner join alumnosGrupo gru on gru.idPer = a.idPer
-    inner join grupos gr on gr.idGrupo = gru.idGrupo
+    inner join unidadAlumno unidad on unidad.idPer = a.idPer
+    inner join unidadesaprendizaje ua on ua.idGrupo = unidad.idUnidad
+    inner join grupos gr on gr.grupo = ua.idGrupo
 where vwP.idTipo = 2
 group by vwP.idPersona;
 select * from vwAlumnosConGrupo;
@@ -91,16 +92,18 @@ select g.idGrupo, g.grupo, t.turmo, tp.semestre, a.area, g.idTurno, tp.idArea fr
 order by g.idGrupo;
 select * from vwGrupos where semestre >= 3 and semestre <=5 order by semestre;
 select * from vwunidadeshorarios;
-drop view if exists vwGruposConCupo;
-create view vwGruposConCupo as
-select g.idGrupo, g.grupo, t.turmo, tp.semestre, a.area, g.idTurno, tp.idArea, gc.cupo from grupos g
+
+drop view if exists vwUnidadesConCupo;
+create view vwUnidadesConCupo as
+select g.idGrupo, g.grupo, t.turmo, tp.semestre, a.area, g.idTurno, tp.idArea, uni.cupo, uni.disponibilidad from grupos g
 	inner join turnos t on t.idTurno = g.idTurno
     inner join tipogrupo tp on tp.idTipoG = g.idTipoGrupo
     inner join areas a on a.idArea = tp.idArea
-    inner join grupocupo gc on gc.idGrupo = g.idGrupo
+    inner join unidadesAprendizaje uni on uni.idGrupo = g.idGrupo
 order by g.idGrupo;
-select * from vwGruposConCupo;
-select * from grupocupo;
+select * from vwUnidadesConCupo;
+
+
 drop view if exists vwMaterias;
 create view vwMaterias as select
 m.idMateria, m.materia, m.semestre, a.area, m.idArea from materias m
@@ -299,7 +302,7 @@ if (existe = 0) then
     insert into alumnos values(bol,idP,edo);
     insert into contrasenas values(idC,idP,md5(pat));
     insert into relacionalumnossemestre value(idP, 1);
-    insert into alumnosgrupo value(idP, -1);
+    insert into unidadAlumno value(idP, -1);
     insert into relimg values(1,idp);
     set msj = 'Ok';
 else
@@ -691,29 +694,42 @@ select msj;
 end ; **
 delimiter ;
 
+select * from unidadalumno;
+select * from unidadesaprendizaje;
+
+
 drop procedure if exists spGuardaAlumnosGrupo;
 delimiter **
-create procedure spGuardaAlumnosGrupo(in bol nvarchar(20), in nom nvarchar(10))
+create procedure spGuardaAlumnosGrupo(in bol nvarchar(20), in nom nvarchar(10))-- para guardar varias unidades a la vez
 begin
-declare existe,idP, getSemes, resta, gru int;
+declare existe, idP, getSemes, gru int;
 declare msj nvarchar(200);
 set gru = (select idGrupo from grupos where grupo = nom);
 set existe = (select count(*) from alumnos where boleta = bol);
 
 if existe = 1 then
 	set idP = (select idPer from alumnos where boleta = bol);
-    set getSemes = (select semestre from vwgrupos where grupo = nom);
-    set resta = (select cupo from grupocupo where idGrupo = gru)-1;
-    set existe = (select count(*) from alumnosgrupo where idPer = idP);
-    if existe = 0 then
-		insert into alumnosGrupo values(idP,gru);
+    set getSemes = (select max(semestre) from vwgrupos where grupo = nom);
+    set existe = (select count(idUnidad) from unidadesAprendizaje where idGrupo = gru);
+    if(existe > 0)then 
+    	set existe = (select count(*) from unidadalumno where idUnidad = -1 and idPer = idP);
+		if(existe > 0)then
+			delete from unidadAlumno where idPer = idP and idUnidad = -1;
+		end if;
+        set existe = (select count(*) from unidadalumno where idPer = idP);
+        if(existe = 0)then
+			insert into unidadalumno (idPer, idUnidad) select idP,  idUnidad from unidadesAprendizaje where idGrupo = gru;
+			update unidadesAprendizaje set disponibilidad = disponibilidad-1 where idUnidad in (select idUnidad from (select * from unidadesAprendizaje) as x where idGrupo = gru);
+			update relacionalumnossemestre set semestre = getSemes where idAlumno = idP; 
+			update alumnos set idEstado = 1 where idPer = idP;
+			set msj = 'ok';
+        else
+            set msj = 'el alumno ya tiene unidades asignadas';
+        end if;
 	else
-		update alumnosgrupo set idGrupo = gru where idPer = idP;
+		set msj = 'el grupo no tiene unidades';
     end if;
-    update relacionalumnossemestre set semestre = getSemes where idAlumno = idP; 
-    update alumnos set idEstado = 1 where idPer = idP;
-    update grupocupo set cupo = resta where idGrupo = gru;
-    set msj = 'ok';
+	
 else
 	set msj = 'no se encuetra la boleta';
 end if;
@@ -760,7 +776,7 @@ if existe > 0 then
 	if (cup>0 or cup<300) then
 		set idMat = (select idMateria from materias where materia = mat);
         set idN = (select ifnull(max(idUnidad),0)+1 from unidadesaprendizaje);
-        insert into unidadesaprendizaje value(idN, idMat,-1,-1, cup);
+        insert into unidadesaprendizaje value(idN, idMat,-1,-1, cup, cup);
         set msj = 'Todo bien';
 	else
 		set msj = 'Introduzca un cupo positivo no excedente de 300';
@@ -843,22 +859,13 @@ drop procedure if exists spGuardaUnidadesGrupo;
 delimiter **
 create procedure spGuardaUnidadesGrupo(in unidad int, in profesor nvarchar(100))
 begin
-declare existe, idPr, cupG, cupU int;
+declare existe, idPr int;
 declare msj nvarchar(200);
 
 set existe = (select count(*) from unidadesaprendizaje where idUnidad = unidad);
 
 if existe = 1 then
 	set idPr = (select idGrupo from grupos where grupo = profesor);
-    set cupU = (select cupo from unidadesaprendizaje where idUnidad = unidad);
-    set existe = (select count(*) from grupocupo where idGrupo = idPr);
-    if existe = 0 then
-		insert into grupocupo value (idPr, cupU);
-    end if;
-    set cupG = (select cupo from grupocupo where idGrupo = idPr);
-    if cupU < cupG then
-		update grupoCupo set cupo = cupU where idGrupo = idPr;
-    end if;
 	update unidadesaprendizaje set idGrupo = idPr where idUnidad = unidad;
     set msj = 'ok';
 else
@@ -924,13 +931,12 @@ drop procedure if exists spGruposPorAlumno;
 delimiter :v
 create procedure spGruposPorAlumno(in bol nvarchar(100))
 begin
-declare existe, idPr, sem, contador int;
-declare msj nvarchar(199);
-set idPr = (select idPer from alumnos where boleta = bol);
-set sem = (select semestre from relacionalumnossemestre where idAlumno = idPr);
-select * from vwgruposconcupo where semestre >= sem and cupo>0 order by semestre; 
+select * from vwgrupos where idGrupo > 0 order by grupo;
 end; :v
 delimiter ;
+
+
+
 
 drop procedure if exists spAsistencia;
 delimiter :v
@@ -1059,7 +1065,7 @@ select * from horariosunidad;
 ##spGuardaAlumnos(in g int, in pat nvarchar(250),in mat nvarchar(250), in nom nvarchar(250), in fech date, in mail nvarchar(250),in bol nvarchar(15),in edo int,in hu longblob)
 call spGuardaAlumnos(1,'islas','ortigoza','obed','97.09.19','obedisor@gmail.com','pm2016928',1);
 call spguardaAlumnosGrupo('pm2016928','1im1');
-select * from alumnosGrupo;
+
 CALL spValidaUsr('pm2016928', 'islas');
 select * from profesores;
 call spValidaUsr('12', 'Olvera');
@@ -1215,11 +1221,14 @@ call spGuardaImg(2, 'prueba2');
 
 drop view if exists vwasistenciaTurnosDia;
 create view vwasistenciaTurnosDia as 
-select A.asistecia,Aa.dia,ag.idGrupo,g.idTurno,aa.idMes from asistenciaalumnos Aa
+select A.asistecia,Aa.dia, uni.idGrupo,g.idTurno,aa.idMes from asistenciaalumnos Aa
 	inner join asistencia a on a.idAsistencia = Aa.idAsistencia
-    inner join alumnosgrupo ag on ag.idPer = Aa.idAlumno
-    inner join grupos g on g.idGrupo = ag.idGrupo
+    inner join unidadalumno ualumnos on ualumnos.idPer = Aa.idAlumno
+    inner join unidadesaprendizaje uni on  uni.idGrupo = ualumnos.idUnidad
+    inner join grupos g on g.idGrupo = uni.idGrupo
 group by Aa.idAA;
+
+select * from vwasistenciaturnosdia;
 drop procedure if exists spConsultaAXT;
 delimiter :v
 create procedure spConsultaAXT(in T int,in mes int)
@@ -1249,11 +1258,13 @@ select * from vwTrabajadores;
 select * from vwalumnos;
 
 
-drop view if exists vwAUD;
+
+drop view if exists vwAUD; -- cuantas personas hay en una unidad
 create view vwAUD as
-select count(*) idPer,idGrupo from alumnosgrupo
-group by idGrupo;
+select idGrupo, (cupo - disponibilidad) as 'idPer' from unidadesaprendizaje group by idGrupo;
+
 select * from vwAUD;
+
 
 drop view if exists vwTraeDatosUnidad;
 create view vwTraeDatosUnidad as
@@ -1284,18 +1295,18 @@ delimiter ;
 call spDatosUnidad('sin grupo',1);
 call spDatosUnidad('sin grupo',5);
 ##call spGuardaAlumnos('');
-call spGuardaAlumnosGrupo('pm2016928','sin grupo');
+-- call spGuardaAlumnosGrupo('pm2016928','sin grupo');
 select * from vwalumnos where boleta = '2010090713';
 call spAsistencia(10);
 drop view if exists vwGruposUnidad;
 create view vwGruposUnidad as
-select u.idUnidad,m.materia, u.idGrupo,g.grupo,ag.idPer from unidadesaprendizaje u
+select u.idUnidad,m.materia, u.idGrupo,g.grupo,ua.idPer from unidadesaprendizaje u
 	inner join grupos g on g.idGrupo = u.idGrupo
-    inner join alumnosgrupo ag on ag.idGrupo = g.idGrupo
+    inner join unidadalumno ua on ua.idUnidad = u.idUnidad
     inner join materias m on m.idMateria = u.idMateria
 ;
-
 select * from vwGruposUnidad;
+
 drop view if exists vwAsistenciaXUnidades;
 create view vwAsistenciaXUnidades as
 select aa.idAA,aa.idAlumno,a.asistecia,aa.idmes,aa.dia,concat(vwal.Paterno,' ',vwal.materno,' ',vwal.nombre)'nombre',vwho.boleta,vwho.idunidad,vwho.idHorarioUnidad,vwho.idDia from asistenciaalumnos Aa
@@ -1303,7 +1314,7 @@ select aa.idAA,aa.idAlumno,a.asistecia,aa.idmes,aa.dia,concat(vwal.Paterno,' ',v
     inner join asistencia a on a.idAsistencia = aa.idAsistencia
     inner join vwhorarioalumnos vwho on vwho.boleta = vwAl.boleta and vwho.idDia = aa.idDia;
     ;
-    
+
 drop view if exists vwUnidadesAlumnos;
 create view vwUnidadesAlumnos as
 select ua.idPer, vwuh.*, a.boleta from unidadalumno ua
@@ -1487,8 +1498,12 @@ delimiter ;
 select * from imagenes;
 drop view if exists vwCuentaA;
 create view vwCuentaA as
-select count(*),idGrupo from alumnosgrupo
+select sum(cupo - disponibilidad) as 'personas',idGrupo from unidadesAprendizaje
 group by idGrupo;
+
+select * from vwcuentaa;
+select * from unidadalumno;
+select * from unidadesaprendizaje;
 select * from vwasistenciaxunidades;
 
 drop procedure if exists spAsistenciaMesUnidad;
@@ -1505,7 +1520,7 @@ delimiter ;
 select * from imagenes;
 
 call spGuardaAlumnos(1,'lugo','contreras','ayax','2000-11-13', 'ayax@gmail.com','2016090123',1);
-call spGuardaAlumnosGrupo('2016090123','Sin grupo');
+-- call spGuardaAlumnosGrupo('2016090123','Sin grupo');
 call spAsistencia(11);
 call spAsistencia(10);
 select * from vwasistenciaxunidades;
@@ -1595,9 +1610,10 @@ call spAsistenciaGrupoDia(1,21,'sin grupo');
 drop view if exists vwasistenciaGrupoDia;
 create view vwasistenciaGrupoDia as 
 select A.asistecia,Aa.idAlumno,Aa.dia,aa.idMes,g.grupo from asistenciaalumnos Aa
-	inner join asistencia a on a.idAsistencia = Aa.idAsistencia
-    inner join alumnosgrupo ag on ag.idPer = Aa.idAlumno
-    inner join grupos g on g.idGrupo = ag.idGrupo;
+	inner join asistencia a on a.idAsistencia = Aa.idAsistencia 
+    inner join unidadalumno ua on ua.idPer = Aa.idAlumno
+        inner join unidadesAprendizaje u on u.idUnidad = ua.idUnidad 
+    inner join grupos g on g.idGrupo = u.idGrupo;
 select * from vwasistenciaGrupoDia;
 
 drop procedure if exists spATotalGrupo ;
@@ -1610,7 +1626,7 @@ declare asistencias,faltas int;
 select asistencias,faltas;
 end; %%
 delimiter ;
-call spATotalGrupo(5,'6IM7');
+call spATotalGrupo(10,'Sin grupo');
 
 
 drop procedure if exists spAsistenciaTurnoDia;
@@ -1876,8 +1892,9 @@ select vwP.*,a.boleta,e.estado, re.semestre, gr.grupo,t.turmo'turno',ar.area fro
 	inner join alumnos a on a.idPer = vwP.idPersona
     inner join estado e on e.idEstado = a.idEstado
     inner join relacionalumnossemestre re on re.idAlumno = a.idPer
-    inner join alumnosGrupo gru on gru.idPer = a.idPer
-    inner join grupos gr on gr.idGrupo = gru.idGrupo
+    inner join unidadalumno ua on ua.idPer = a.idPer
+    inner join unidadesAprendizaje u on u.idUnidad = ua.idUnidad
+    inner join grupos gr on gr.idGrupo = u.idGrupo
     inner join turnos t on t.idTurno = gr.idTurno
     inner join tipogrupo tg on tg.idTipoG = gr.idTipoGrupo
     inner join areas ar on ar.idArea = tg.idArea
@@ -1885,6 +1902,7 @@ select vwP.*,a.boleta,e.estado, re.semestre, gr.grupo,t.turmo'turno',ar.area fro
 where vwP.idTipo = 2
 group by vwP.idPersona;
 
+select * from vwDatosAlumnos;
 select * from areas;
 
 update areas set area = 'Maquinas' where idArea = 2;
@@ -2003,6 +2021,7 @@ begin
 	select msj;
 end; :v
 delimiter ;
+
 drop procedure if exists spGuardaUnidadesAlumno;
 delimiter :v
 create procedure spGuardaUnidadesAlumno(in unidad int, in bol nvarchar(200))
@@ -2014,9 +2033,24 @@ set existe = (select count(*) from unidadesaprendizaje where idUnidad = unidad);
 
 if existe = 1 then
 	set idPr = (select idPer from alumnos where boleta = bol);
-	insert into unidadalumno value (idPr, unidad);
-    update alumnos set idEstado = 2 where idPer = idPr;
-    set msj = 'ok';
+    set existe = (select count(*) from unidadalumno where idPer = idPr and idUnidad = unidad);
+    if(existe = 1) then
+		set msj = 'la unidad ya esta inscrita';
+	else
+		set existe = (select count(*) from unidadesaprendizaje where idUnidad = unidad);
+        if (existe > 0) then
+			insert into unidadalumno value (idPr, unidad);
+			update unidadesAprendizaje set disponibilidad = disponibilidad-1 where idUnidad = unidad;
+			update alumnos set idEstado = 1 where idPer = idPr;
+			set existe = (select count(*) from unidadalumno where idUnidad = -1 and idPer = idPr);
+			if(existe > 0)then
+				delete from unidadAlumno where idPer = idPr and idUnidad = -1;
+			end if;
+            set msj = 'ok';
+		else
+			set msj = 'la unidad no existe';
+        end if;
+    end if;
 else
 	set msj = 'no se encuetra la unidad';
 end if;
@@ -2034,8 +2068,19 @@ declare msj nvarchar(199);
 set existe = (select count(*) from unidadesaprendizaje where idUnidad = idUni);
 if existe >0 then 
 	set idPr = (select idPer from alumnos where boleta = bol);
-	delete from unidadalumno where idPer = idPr and idUnidad = idUni;
-    set msj = 'ok';
+    set existe = (select idUnidad from unidadalumno where idPer = idPr and idUnidad = idUni);
+    if(existe > 0) then
+		delete from unidadalumno where idPer = idPr and idUnidad = idUni;
+		update unidadesAprendizaje set disponibilidad = disponibilidad+1 where idUnidad = idUni;
+		set msj = 'ok';
+        set existe = (select count(idUnidad) from unidadalumno where idPer = idPr);
+        if(existe = 0) then
+			insert into unidadAlumno value(idPr, -1);
+        end if;
+    else
+		set msj = 'el alumno no tiene inscrita la unidad de aprendizaje';
+    end if;
+	
 else
 	set msj = 'No se pudo quitar la unidad';
 end if;
@@ -2182,7 +2227,7 @@ call spGuardaUnidadesProfesor(6, 'pantojita');
 
 select * from areas;
 
-call spNuevoGrupo('grupobase2', 7, 6, 1);
+-- call spNuevoGrupo('grupobase2', 7, 6, 1);
 
 drop procedure if exists spBorrarMateria;
 delimiter |
@@ -2234,73 +2279,21 @@ delimiter ;
 
 call spBorraUnidadEspecifica(17);
 
+
+
+select * from unidadalumno;
+
+
 ##=============================================================
 
 
-select * from grupos;
-select * from tipogrupo;
-
-select * from vwgrupos;
-select * from vwgrupos where idGrupo > 0;
-
-select * from vwunidadeshorarios;
-select * from vwunidadeshorarios where idGrupo <0 and idProfesor > 0 and semestre = 6;##profesores con unidades disponibles
-select * from vwunidadeshorarios where grupo = 'pruebas';##profesores inscritos en un grupo especifico
-
-call spGuardaUnidadesGrupo(6, 'pruebas');##idunidad, nombregrupo
-call spBorraGrupoHorario(7, 'pruebas');
-call spEditaGrupo('pruebas', '1IM1', 6, 4, 1);
-
-call spNuevaMateria(1, '"uni"', 6);
-
-
-call spNuevaUnidad('" + nombreUnidad + "', " + cupo + ");##poner cupo
-call spUnidadHorario(" + idUnid + ", " + horaI + ", " + horaF + ", " + dia + ");##se debe de guardar uno por uno xd
-
-select * from materias;
-select * from vwmaterias;##directorio de unidades de aprendizaje y crear unidades con horario
-select * from especialidades;
-
-select * from vwunidadeshorarios where idProfesor < 0 and grupo = 'Sin grupo';##gestionar unidades con horarios
-select * from vwunidadeshorarios;
-select * from vwtrabajadores;
-use bdPoliAsistencia;
-select * from areas;
-
-
-
-
-select idMateria from materias where materia = 'aaa';
-select min(idUnidad) from unidadesaprendizaje where idMateria = 104;
-select idUnidad from unidadesaprendizaje where idMateria = 104;
-delete from horariosunidad where idUnidad = 16;
-
-delete from horariosunidad where idUnidad in(select idUnidad from unidadesaprendizaje where idMateria = 104);
-
-delete from materias, unidadesaprendizaje
-				using materias
-				inner join unidadesaprendizaje
-				where materia = 'aaa'
-					  and materias.idMateria = unidadesaprendizaje.idMateria;
-                      
-select * from horariosunidad;
+select * from unidadalumno;
 select * from unidadesaprendizaje;
-select * from materias;
 
-##para crar unidad y asignarle horario
-call spNuevaUnidad('nombreUnidad', " + cupo + ");
+select count(*) from unidadalumno where idPer = 14;
 
-call spUnidadHorario(" + idUnid + ", " + horaI + ", " + horaF + ", " + dia + ");
+call spGuardaAlumnosGrupo('2016090069', 'xd');
 
-
-select * from unidadesaprendizaje;
-select * from vwunidadeshorarios;
-select * from horariosunidad;
-
-
-
-delete from unidadesaprendizaje where idUnidad = 20;
-delete from horariosunidad where idUnidad = 20;
-
-
-
+call spBorraAlumnoUnidad(4, '2016090069');
+call spGuardaUnidadesAlumno(3, '2016090069');
+select * from vwunidadesalumnos;

@@ -2,6 +2,7 @@ insert into areas values(1,'tronco comun');
 insert into areas values(2,'Progra');
 insert into areas values(3,'Maquinas');
 insert into areas values(4,'Sistemas');
+insert into Materias values(-1, 1, 'Sin materia', 1);
 insert into Materias values(	1	,	1,'ALGEBRA',	1	);
 insert into Materias values(	2	,	1,'COMPUTACION BASICA II',	1	);
 insert into Materias values(	3	,	1,'EXPRESION ORAL Y ESCRITA I',	1	);
@@ -315,3 +316,5 @@ insert into TipoNotificacion values(2,'Para maestros');
 insert into TipoNotificacion values(3,'General');
 
 insert into imagenes values(1,'default.jpg');
+
+insert into unidadesaprendizaje values(-1, -1, -1, -1, 1, 1);
