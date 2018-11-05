@@ -74,7 +74,7 @@ update personas set idTipo = 4 where idPer = 10;
 drop view if exists vwUnidadesHorarios;
 create view vwUnidadesHorarios as
 select ua.idUnidad, hu.idHorarioUnidad, m.materia, m.semestre, pro.numTrabajador, concat(per.nombre, ' ', per.paterno, ' ', per.materno) as Nombre,
-  ua.idProfesor, gru.grupo, ua.idGrupo, ua.cupo, hu.idHorarioI,hu.idHorarioF,hu.idDia, ua.idMateria from horariosunidad hu
+  ua.idProfesor, gru.grupo, ua.idGrupo, ua.cupo, ua.disponibilidad, hu.idHorarioI,hu.idHorarioF,hu.idDia, ua.idMateria from horariosunidad hu
 	inner join unidadesaprendizaje ua on ua.idUnidad = hu.idUnidad
     inner join materias m on m.idMateria = ua.idMateria
     inner join profesores pro on pro.idPer = ua.idProfesor
@@ -95,11 +95,13 @@ select * from vwunidadeshorarios;
 
 drop view if exists vwUnidadesConCupo;
 create view vwUnidadesConCupo as
-select g.idGrupo, g.grupo, t.turmo, tp.semestre, a.area, g.idTurno, tp.idArea, uni.cupo, uni.disponibilidad from grupos g
+select g.idGrupo, g.grupo, uni.idUnidad, mat.materia, concat(per.nombre, ' ', per.paterno, ' ', per.materno) as profesor, t.turmo, tp.semestre, a.area, g.idTurno, tp.idArea, uni.cupo, uni.disponibilidad from grupos g
 	inner join turnos t on t.idTurno = g.idTurno
     inner join tipogrupo tp on tp.idTipoG = g.idTipoGrupo
     inner join areas a on a.idArea = tp.idArea
     inner join unidadesAprendizaje uni on uni.idGrupo = g.idGrupo
+    inner join materias mat on mat.idMateria = uni.idMateria
+    inner join personas per on per.idPer = uni.idProfesor
 order by g.idGrupo;
 select * from vwUnidadesConCupo;
 
@@ -2289,6 +2291,13 @@ select * from unidadalumno;
 
 select * from unidadalumno;
 select * from unidadesaprendizaje;
+select * from vwunidadesconcupo;
+select * from horariosunidad;
+
+
+select * from vwunidadeshorarios;
+select * from vwUnidadesAlumnos;
+select * from vwUnidadesAlumnos where boleta = '2016090069';
 
 select count(*) from unidadalumno where idPer = 14;
 
@@ -2297,3 +2306,24 @@ call spGuardaAlumnosGrupo('2016090069', 'xd');
 call spBorraAlumnoUnidad(4, '2016090069');
 call spGuardaUnidadesAlumno(3, '2016090069');
 select * from vwunidadesalumnos;
+
+call spGuardaUnidadesAlumno(3, '2016090069');
+call spBorraAlumnoUnidad(3, '2016090069');
+
+call spGuardaUnidadesAlumno(4, '2016090069');
+call spBorraAlumnoUnidad(4, '2016090069');
+
+
+select * from vwgruposunidad;
+
+call spGuardaAlumnosGrupo('2016090069', '1IM1');
+
+select * from vwHuellasPersonas;
+
+
+select * from tipopersona;
+
+
+select * from vwtrabajadores where idPersona = 5;
+
+
