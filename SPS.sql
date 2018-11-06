@@ -2166,7 +2166,7 @@ begin
 end; :v
 
 delimiter ;
-###==========================
+###======
 
 
 drop procedure if exists spHuellasPersona;
@@ -2239,19 +2239,11 @@ begin
     declare msj nvarchar(50);
     set idMat = (select idMateria from materias where materia = nombreMat);
     if(idMat > 0)then
-		set n = (select count(*) idUnidad from unidadesaprendizaje where idMateria = idMat);
-        if (n > 0) then
-			delete from horariosunidad where idUnidad in(select idUnidad from unidadesaprendizaje where idMateria = idMat);     
-			delete from materias, unidadesaprendizaje
-				using materias
-				inner join unidadesaprendizaje
-				where materia = nombreMat
-						and materias.idMateria = unidadesaprendizaje.idMateria;
-			set msj = 'ok';
-		else
-			delete from materias where materia = nombreMat;
-            set msj = 'ok';
-        end if;
+		delete from horariosunidad where idUnidad in(select idUnidad from unidadesaprendizaje where idMateria = idMat);
+		delete from unidadalumno where idUnidad in(select idUnidad from unidadesaprendizaje where idMateria = idMat);
+		delete from unidadesaprendizaje where idMateria = idMat;
+		delete from materias where materia = nombreMat;
+        set msj = 'ok';
 	else
 		set msj = 'no existe la unidad';
     end if;
@@ -2269,8 +2261,10 @@ begin
     declare msj nvarchar(50);
     set existe = (select idUnidad from unidadesaprendizaje where idUnidad = idUni);
     if(existe > 0) then
-		delete from horariosunidad where idUnidad = idUni;
+		delete from unidadalumno where idUnidad = idUni;
+        delete from horariosunidad where idUnidad = idUni;
         delete from unidadesaprendizaje where idUnidad = idUni;
+        insert into unidadalumno (idPer, idUnidad) select idPer, -1 from alumnos where idPer not in (select idPer from unidadalumno);
         set msj = 'ok';
 	else
 		set msj = 'no existe la unidad';
@@ -2279,51 +2273,14 @@ begin
 end; |
 delimiter ;
 
-call spBorraUnidadEspecifica(17);
-
-
-
-select * from unidadalumno;
-
 
 ##=============================================================
 
 
-select * from unidadalumno;
-select * from unidadesaprendizaje;
-select * from vwunidadesconcupo;
-select * from horariosunidad;
 
 
-select * from vwunidadeshorarios;
-select * from vwUnidadesAlumnos;
-select * from vwUnidadesAlumnos where boleta = '2016090069';
-
-select count(*) from unidadalumno where idPer = 14;
-
-call spGuardaAlumnosGrupo('2016090069', 'xd');
-
-call spBorraAlumnoUnidad(4, '2016090069');
-call spGuardaUnidadesAlumno(3, '2016090069');
-select * from vwunidadesalumnos;
-
-call spGuardaUnidadesAlumno(3, '2016090069');
-call spBorraAlumnoUnidad(3, '2016090069');
-
-call spGuardaUnidadesAlumno(4, '2016090069');
-call spBorraAlumnoUnidad(4, '2016090069');
 
 
-select * from vwgruposunidad;
 
-call spGuardaAlumnosGrupo('2016090069', '1IM1');
-
-select * from vwHuellasPersonas;
-
-
-select * from tipopersona;
-
-
-select * from vwtrabajadores where idPersona = 5;
 
 
